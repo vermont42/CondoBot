@@ -21,6 +21,75 @@ Claude Code is the development tool — it's how we build, test, and iterate on 
 - **Drop-in Node.js compatibility.** Uses the same `node_modules`, supports most Node.js APIs, runs existing npm packages unchanged.
 - **Built-in SQLite driver.** `bun:sqlite` provides a native SQLite interface with no external dependency — ideal for CondoBot's conversation database.
 
+## Developing with Bun (iOS Developer's Guide)
+
+If you've only worked in Xcode + Swift, the Bun/TypeScript workflow will feel surprisingly lightweight. There's no project file, no build phase, no simulator boot. You write a `.ts` file and run it.
+
+### Concept Mapping
+
+| iOS / Swift | Bun / TypeScript | Notes |
+|-------------|-----------------|-------|
+| Xcode | VS Code | Free, extensible, excellent TS support built in |
+| Swift | TypeScript | Statically typed, compiles to JavaScript (Bun does this transparently) |
+| Swift compiler | Bun runtime | Bun executes `.ts` files directly — no separate compile step |
+| SPM / CocoaPods | `bun add <package>` | Reads `package.json` (like `Package.swift`), installs to `node_modules/` |
+| `Package.swift` | `package.json` | Declares dependencies, scripts, and project metadata |
+| Xcode build schemes | `package.json` scripts | e.g., `"dev": "bun run --watch src/index.ts"` |
+| Simulator / device | `bun run src/index.ts` | Starts a local HTTP server you can hit with curl or a browser |
+| `print()` | `console.log()` | Outputs to the terminal |
+| XCTest | `bun test` | Built-in test runner, Jest-compatible syntax |
+| App Store / TestFlight | Deploy to Railway, Fly.io, or a VPS | `git push` triggers a build on most platforms |
+
+### Daily Workflow
+
+```bash
+# Install Bun (one-time)
+curl -fsSL https://bun.sh/install | bash
+
+# Initialize a new project (like File > New Project in Xcode)
+mkdir condobot && cd condobot
+bun init
+
+# Install a dependency (like adding a package in SPM)
+bun add hono          # web framework
+bun add @anthropic-ai/sdk  # Claude API client
+
+# Run the app (like hitting ⌘R)
+bun run src/index.ts
+
+# Run with auto-reload on file changes (like SwiftUI previews, roughly)
+bun run --watch src/index.ts
+
+# Run tests (like ⌘U)
+bun test
+```
+
+### TypeScript for Swift Developers
+
+TypeScript is JavaScript with a static type system bolted on — and it's excellent. Coming from Swift, you'll find familiar concepts:
+
+| Swift | TypeScript | Example |
+|-------|-----------|---------|
+| `let` / `var` | `const` / `let` | `const name: string = "Cindy"` |
+| `String`, `Int`, `Bool` | `string`, `number`, `boolean` | Lowercase primitives |
+| `[String]` | `string[]` | `const guests: string[] = []` |
+| `String?` (Optional) | `string \| undefined` | Union types replace optionals |
+| `protocol` | `interface` | `interface Guest { name: string; email: string }` |
+| `enum` | `enum` or union types | `type Status = "pending" \| "approved" \| "sent"` |
+| `guard let` | Narrowing / early return | `if (!guest) return;` — TS narrows the type automatically |
+| `async` / `await` | `async` / `await` | Nearly identical syntax |
+| `struct` | `interface` + plain object | TS doesn't distinguish structs from classes the same way |
+
+The VS Code experience is comparable to Xcode for Swift: inline errors, autocomplete, jump-to-definition, and refactoring — all powered by the TypeScript language server.
+
+### Key Differences from iOS Development
+
+- **No build step.** Bun runs TypeScript directly. There's no equivalent of "waiting for the project to compile."
+- **No signing or provisioning.** Deployment is just getting your code onto a server that has Bun installed.
+- **Package ecosystem is massive.** npm has ~2.5 million packages. The answer to "is there a library for X?" is almost always yes.
+- **Server, not app.** CondoBot is a long-running process that listens for HTTP requests, not a GUI app. Think of it like a REST API that never stops running.
+- **Hot reload.** `bun run --watch` restarts automatically when you save a file — faster iteration than even SwiftUI previews.
+
 ## Tech Stack
 
 | Component | Technology | Notes |
