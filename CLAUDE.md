@@ -25,10 +25,10 @@ CondoBot replaces repetitive manual reply composition with AI-generated drafts. 
 |------|------|
 | Josh Adams | Co-owner and developer of CondoBot |
 | Amanda Vinson | Co-owner (Josh's wife) |
-| Cindy | Amanda's mother, primary message handler. Approves and sends CondoBot drafts. Her voice and tone are the target for AI-generated responses. |
+| Cindy Vinson | Amanda's mother, primary message handler. Approves and sends CondoBot drafts. Her voice and tone are the target for AI-generated responses. |
 | Bonnie & Darren | Cleaners and caretakers. Currently coordinated by Cindy via iMessage; Twilio SMS planned for Phase 3. |
 
-Josh and Amanda live in Orinda, CA.
+Josh and Amanda live in Orinda, CA. Cindy lives in nearby Walnut Creek, CA.
 
 ### Communication Platform
 
