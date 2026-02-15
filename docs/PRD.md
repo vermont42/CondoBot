@@ -4,7 +4,7 @@
 
 ### Phase 1: Knowledge-Base FAQ Responder
 
-**Goal:** Handle the 90% of messages that are repetitive FAQs. Cindy approves every draft before sending.
+**Goal:** Handle the 90% of messages that are repetitive FAQs. Every draft requires human approval before sending.
 
 **Pipeline:**
 
@@ -12,8 +12,8 @@
 2. Webhook handler receives payload, calls Hospitable API to get full conversation thread
 3. System builds prompt: system prompt + knowledge base + conversation thread + guest's latest message
 4. Anthropic API (Haiku 4.5) generates draft reply using tool-use to pull relevant knowledge
-5. Draft is surfaced to approver (Slack message with Send/Edit buttons; Edit opens a modal with the draft pre-filled)
-6. On approval, server calls Hospitable Send Message API to reply as host
+5. Draft is posted to a shared Slack approval channel that Josh, Amanda, and Cindy all monitor (Block Kit message with Send/Edit buttons; Edit opens a modal with the draft pre-filled)
+6. Any approver clicks Send (or edits and sends); server calls Hospitable Send Message API to reply as host
 
 **Hospitable API notes:**
 
@@ -32,7 +32,7 @@
 - Slack bot (Block Kit messages, modal for editing, interaction handlers)
 - One-time historical message backfill from Hospitable API
 
-**Note:** Every guest message generates a draft — there is no classification or filtering step. Cindy ignores drafts that don't need a reply.
+**Note:** Every guest message generates a draft — there is no classification or filtering step. Approvers ignore drafts that don't need a reply.
 
 ### Phase 2: Calendar-Aware Tool Use
 
@@ -42,7 +42,7 @@
 
 - Guest asks "Can I extend through Wednesday?" → system checks calendar for conflicting reservations → drafts informed approval or decline
 - Guest asks "Is the condo available next week?" → system checks availability → drafts response with booking link
-- No-conflict extensions get drafted for Cindy's one-click approval
+- No-conflict extensions get drafted for one-click approval in the shared channel
 - Conflicts get flagged with explanation
 
 ### Phase 3: Twilio Integration for Bonnie & Darren
@@ -53,7 +53,7 @@
 
 - Extension approved → system texts Bonnie via Twilio to confirm cleaning reschedule
 - Bonnie replies → system ingests response and drafts guest confirmation
-- Cindy remains in the loop but doesn't have to manually relay between guest and cleaner
+- The approval channel keeps everyone in the loop without having to manually relay between guest and cleaner
 
 **Implementation note:** Use Twilio (not iMessage) for programmatic SMS. iMessage has no legitimate API. Set up a dedicated Twilio phone number for CondoBot.
 
@@ -159,7 +159,7 @@ This file is critical for matching Cindy's tone. Structure as an array:
 
 **Threat model is minimal.** Guests interact through Airbnb/VRBO messaging and believe they're talking to Cindy. They have no reason to attempt prompt injection or adversarial inputs. This is fundamentally different from a public-facing chatbot.
 
-**Cindy-in-the-loop** serves as both quality check and safety layer in Phase 1. She catches hallucinations, wrong information, or odd tone before anything reaches the guest.
+**Human-in-the-loop** serves as both quality check and safety layer in Phase 1. Josh, Amanda, or Cindy catches hallucinations, wrong information, or odd tone before anything reaches the guest.
 
 **For future auto-send (if ever implemented):** Guard against hallucination rather than adversarial abuse. The system should not confidently affirm information that isn't in the knowledge base (e.g., a guest mentions a restaurant by name and the model agrees it's great without verifying).
 

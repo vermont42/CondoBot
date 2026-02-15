@@ -16,8 +16,8 @@ CondoBot replaces repetitive manual reply composition with AI-generated drafts. 
 
 1. Hospitable webhook fires on new guest message
 2. CondoBot retrieves the full conversation thread and composes a draft reply
-3. Draft is sent to Amanda, Josh, or Cindy for approval
-4. Upon approval, CondoBot sends the message to the guest via Hospitable
+3. Draft is posted to a shared Slack approval channel that Josh, Amanda, and Cindy monitor
+4. Any approver clicks Send (or edits and sends); CondoBot sends the message to the guest via Hospitable
 
 ### Team
 
@@ -25,14 +25,14 @@ CondoBot replaces repetitive manual reply composition with AI-generated drafts. 
 |------|------|
 | Josh Adams | Co-owner and developer of CondoBot |
 | Amanda Vinson | Co-owner (Josh's wife) |
-| Cindy Vinson | Amanda's mother, primary message handler. Approves and sends CondoBot drafts. Her voice and tone are the target for AI-generated responses. |
+| Cindy Vinson | Amanda's mother, primary message handler. Her voice and tone are the target for AI-generated responses. |
 | Bonnie & Darren | Cleaners and caretakers. Currently coordinated by Cindy via iMessage; Twilio SMS planned for Phase 3. |
 
 Josh and Amanda live in Orinda, CA. Cindy lives in nearby Walnut Creek, CA.
 
 ### Communication Platform
 
-Slack. Drafts are posted as Block Kit messages with Send/Edit buttons. Edit opens a modal with the draft pre-filled for inline editing.
+Slack. Drafts are posted to a shared approval channel (e.g., `#condobot-approvals`) as Block Kit messages with Send/Edit buttons. Josh, Amanda, and Cindy all monitor the channel — whoever sees a draft first can approve it. Edit opens a modal with the draft pre-filled for inline editing.
 
 ## Properties
 

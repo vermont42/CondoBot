@@ -7,7 +7,7 @@ Claude Code is the development tool — it's how we build, test, and iterate on 
 - **Always-on webhook listener.** CondoBot needs a persistent HTTP server to receive Hospitable webhooks 24/7. Claude Code is an interactive CLI session, not a daemon.
 - **Cost control.** CondoBot's per-response work (retrieve knowledge, compose a reply) is well within Haiku 4.5's capabilities at ~$0.005/response. Running these tasks through Claude Code would use Opus or Sonnet at 50–100x the cost.
 - **Programmatic control.** A standalone service gives full control over system prompts, tool definitions, prompt caching, retry logic, and conversation threading — none of which are configurable when working through Claude Code's interactive interface.
-- **Approval UI.** The service needs to send interactive messages (with Send/Edit buttons) to an approval channel and handle callback responses. This requires a running server with state.
+- **Approval UI.** The service needs to post interactive messages (with Send/Edit buttons) to a shared Slack approval channel and handle callback responses from any approver. This requires a running server with state.
 - **Reliability and uptime.** A deployed service can be monitored, auto-restarted, and load-balanced. A Claude Code session cannot.
 
 ## Why Bun
@@ -100,7 +100,7 @@ The VS Code experience is comparable to Xcode for Swift: inline errors, autocomp
 | Prompt optimization | Prompt caching | System prompt + knowledge base cached; 90% input cost reduction |
 | Cleaner coordination | Twilio (Phase 3) | SMS to Bonnie & Darren |
 | HTTP framework | Hono | Lightweight, Bun-native, Express-like API |
-| Approval channel | Slack (Block Kit) | Interactive buttons for Send/Edit; modals for editing drafts |
+| Approval channel | Slack (Block Kit) | Shared channel monitored by Josh, Amanda, and Cindy; interactive buttons for Send/Edit; modals for editing drafts |
 | Data storage | SQLite via `bun:sqlite` | Conversation history, guest records |
 
 ## Architecture: Tool Use from Day One
@@ -191,9 +191,15 @@ CREATE TABLE drafts (
 
 Hospitable's webhook signature mechanism needs to be verified during implementation. The webhook handler should validate incoming requests to ensure they originate from Hospitable. This will be designed as a spike task once we have API access and can inspect actual webhook payloads.
 
-## Approval Channel Portability
+## Approval Channel
 
-Slack is the chosen approval channel. If Slack doesn't work out, alternatives are:
+Drafts are posted to a shared Slack channel (e.g., `#condobot-approvals`) that Josh, Amanda, and Cindy all monitor. Any one of them can approve a draft — whoever sees it first handles it. Once someone clicks Send (or edits and sends), the Slack message updates to show who approved it and when, preventing duplicate sends.
+
+This shared-channel model eliminates single-person bottlenecks. If Cindy is busy, Josh or Amanda can approve, and vice versa. Everyone has visibility into what's being sent to guests.
+
+### Portability
+
+If Slack doesn't work out, alternatives are:
 
 | Alternative | Editing UX | Push Notifications | Swap Effort |
 |-------------|-----------|-------------------|-------------|
