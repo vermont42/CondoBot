@@ -34,9 +34,9 @@
 
 **Note:** Every guest message generates a draft — there is no classification or filtering step. Approvers ignore drafts that don't need a reply.
 
-### Phase 2: Calendar-Aware Tool Use
+### Phase 2: Calendar & Pricing-Aware Tool Use
 
-**Goal:** Handle availability questions, extension requests, and date-dependent inquiries by checking the Hospitable calendar.
+**Goal:** Handle availability questions, extension requests, and date-dependent inquiries by checking the Hospitable calendar. Also proactively monitor vacancies and suggest pricing adjustments to improve occupancy.
 
 **New capabilities:**
 
@@ -44,6 +44,24 @@
 - Guest asks "Is the condo available next week?" → system checks availability → drafts response with booking link
 - No-conflict extensions get drafted for one-click approval in the shared channel
 - Conflicts get flagged with explanation
+- Proactive vacancy monitoring: CondoBot periodically scans for open slots in the near future and posts a suggestion to the approval channel to lower the price and reduce the cancellation period from 30 days to 5 days
+- Draft suggestions include the current PriceLabs price, a recommended reduced price, and the date range
+
+#### Dynamic Pricing
+
+PriceLabs is the dynamic pricing source. It pushes nightly prices to Hospitable, which in turn pushes them to Airbnb and VRBO. CondoBot reads pricing data from Hospitable (not PriceLabs directly).
+
+PriceLabs also sets minimum stay lengths based on proximity to the date:
+
+- More than 6 months out: minimum 6-night stay
+- 3–6 months out: minimum 4-night stay
+- Less than 3 months out to 2 days from now: minimum 2-night stay
+
+**Note:** The exact minimum-stay rules above are approximate and should be verified against the current PriceLabs configuration.
+
+#### A/B Test: PriceLabs vs. Hospitable Dynamic Pricing
+
+In Phase 2 or 3, run an A/B test: one condo uses PriceLabs dynamic pricing, the other uses Hospitable's built-in dynamic pricing. After a defined period, compare occupancy rates and revenue to evaluate which strategy performs better.
 
 ### Phase 3: Twilio Integration for Bonnie & Darren
 

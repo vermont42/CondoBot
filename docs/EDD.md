@@ -101,6 +101,7 @@ The VS Code experience is comparable to Xcode for Swift: inline errors, autocomp
 | Cleaner coordination | Twilio (Phase 3) | SMS to Bonnie & Darren |
 | HTTP framework | Hono | Lightweight, Bun-native, Express-like API |
 | Approval channel | Slack (Block Kit) | Shared channel monitored by Josh, Amanda, and Cindy; interactive buttons for Send/Edit; modals for editing drafts |
+| Dynamic pricing | PriceLabs | Pushes prices and minimum-stay rules to Hospitable |
 | Data storage | SQLite via `bun:sqlite` | Conversation history, guest records |
 
 ## Architecture: Tool Use from Day One
@@ -119,12 +120,19 @@ Even though Phase 1 is a knowledge-base responder, the system uses Claude's tool
 
 - `check_calendar_availability` — query Hospitable API for reservation conflicts
 - `get_reservation_details` — pull check-in/check-out dates, guest info
+- `get_vacancy_windows` — scan Hospitable calendar for upcoming open date ranges
+- `get_current_pricing` — retrieve current nightly rates and minimum-stay settings from Hospitable
+- `suggest_price_reduction` — propose a price drop and cancellation-period reduction for a vacant window; posts to approval channel
 
 ### Phase 3 tools (external coordination)
 
 - `text_bonnie` — send SMS to cleaner via Twilio
 - `check_cleaner_schedule` — query cleaner availability
 - `send_extension_quote` — calculate and propose pricing for stay extensions
+
+## Proactive Scheduling
+
+Phase 2 introduces CondoBot's first non-reactive behavior. In addition to the existing webhook-driven message pipeline, a periodic job (e.g., daily cron or interval) scans for upcoming vacancies and generates pricing suggestions. This job uses the `get_vacancy_windows` and `get_current_pricing` tools to identify open date ranges, then calls `suggest_price_reduction` to post recommendations to the approval channel for human review.
 
 ## Data Storage
 
@@ -235,6 +243,9 @@ condobot/
 │       ├── lookup-technology.ts
 │       ├── check-calendar.ts        # Phase 2
 │       ├── get-reservation.ts       # Phase 2
+│       ├── get-vacancy-windows.ts   # Phase 2
+│       ├── get-current-pricing.ts   # Phase 2
+│       ├── suggest-price-reduction.ts # Phase 2
 │       └── text-bonnie.ts           # Phase 3
 ├── data/
 │   └── conversations.db         # SQLite: historical messages + ongoing conversations
