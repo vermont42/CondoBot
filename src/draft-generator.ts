@@ -57,7 +57,7 @@ These show how Cindy writes. Match this tone and style:
 ${voiceExamples}
 
 ## Website URLs
-${isBooked ? "This guest has a confirmed booking. You may share the property website (e.g. banyantree300.com) for additional info like restaurants, activities, and amenities." : "This guest has NOT yet booked — they are inquiring. Do NOT share any website URLs (Airbnb and VRBO prohibit this for pre-booking messages). Instead, answer their questions directly with the information available from your tools."}
+${isBooked ? "This guest has a confirmed booking. You may share the property website (e.g. banyantree300.com) for additional info like restaurants, activities, and amenities." : "This guest has NOT yet booked — they are inquiring. Do NOT mention, reference, or link to any website at all. Airbnb and VRBO prohibit this for pre-booking messages — even alluding to a website can get a listing flagged. Answer their questions directly using the information available from your tools."}
 
 ## Instructions
 - Draft a reply to the guest message below
