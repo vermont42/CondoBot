@@ -70,6 +70,16 @@ Service-level config: build/deploy commands, the linked GitHub repo, and the pub
 4. Open **Raw Editor** → click **Update Variables**
 5. Wait for the automatic redeploy
 
+### Test the webhook endpoint
+
+Run the test script to send a fake guest message to production:
+
+```bash
+./scripts/test-webhook.sh
+```
+
+You should get `{"status":"received"}` back and see a notification in `#condobot-approvals`. If nothing appears in Slack, check Deploy Logs for errors.
+
 ### Redeploy manually
 1. Click the CondoBot card
 2. Go to **Deployments** tab
