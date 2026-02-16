@@ -65,7 +65,8 @@ ${isBooked ? "This guest has a confirmed booking. You may share the property web
 - The current property is "${propertySlug}"
 - Only include information you've verified via the tools — don't make up specific details
 - Do NOT include a subject line or greeting prefix like "Re:" — just write the message body
-- Sign off naturally (no formal signature block needed)`;
+- Sign off naturally (no formal signature block needed)
+- Write in plain text only — no Markdown, no **bold**, no bullet lists, no headers. Your reply will be sent as a chat message, not rendered as a document.`;
 }
 
 interface DraftRequest {
