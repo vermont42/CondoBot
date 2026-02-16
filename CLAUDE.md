@@ -105,10 +105,15 @@ https://kanaloacommunique.com
 
 This website is run by the Kanaloa at Kona HOA and has information about the complex and its management.
 
+## Developer Workflow
+
+- When outputting long commands for Josh to run in his terminal, copy them to the macOS pasteboard using `echo "..." | pbcopy` and tell him the command is in his clipboard. Terminal copy-paste mangles long lines due to soft-wrapping.
+- When sending JSON via `curl -d`, do NOT pass it inline — the shell mangles nested quotes. Write the JSON to a temp file and use `curl -d @/tmp/filename.json` instead.
+
 ## TODO
 
 - [ ] Get an Anthropic API key from https://console.anthropic.com (required for powering CondoBot — the Max subscription is for personal use only, not automation)
-- [ ] Decide where to host CondoBot (VPS, Mac Mini, Railway, Fly.io, or other)
+- [x] Decide where to host CondoBot (VPS, Mac Mini, Railway, Fly.io, or other) - chose Railway
 - [x] Get Hospitable API Personal Access Token (Settings > Apps > API access) and store in .env file
 - [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access
 - [x] Create Slack workspace and bot app
