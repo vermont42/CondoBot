@@ -220,6 +220,18 @@ To keep the swap cost low, `approval-notifier.ts` should define a clean interfac
 
 Estimated swap effort: **1-2 days** for Discord or Telegram, since the core pipeline (webhook → draft → approve → send) doesn't change.
 
+## Minimal Path to Deployed Server URL
+
+To receive Hospitable webhooks, CondoBot needs a publicly accessible URL. The fastest path:
+
+1. **Initialize the project** — `bun init`, then `bun add hono` for the HTTP framework
+2. **Write a minimal webhook handler** — a Hono server with a `POST /webhooks/hospitable` endpoint that logs the incoming payload and returns 200
+3. **Pick a host** — Railway (`git push` deploys, free tier, easiest setup), Fly.io (similar, slightly more config), or a VPS (more control, more setup). This is still an open decision (see CLAUDE.md TODO)
+4. **Deploy** — push the code and get the public URL (e.g., `https://condobot.up.railway.app`)
+5. **Configure the webhook in Hospitable** — go to Apps > Tools > Webhooks > +Add new, select "Messages", paste the URL (e.g., `https://condobot.up.railway.app/webhooks/hospitable`)
+
+Steps 1–2 are ~20 lines of code. Step 3 is the decision point.
+
 ## Repo Structure
 
 ```

@@ -96,8 +96,9 @@ Slack. Drafts are posted to a shared approval channel (e.g., `#condobot-approval
 
 - [ ] Get an Anthropic API key from https://console.anthropic.com (required for powering CondoBot — the Max subscription is for personal use only, not automation)
 - [ ] Decide where to host CondoBot (VPS, Mac Mini, Railway, Fly.io, or other)
-- [ ] Get Hospitable API Personal Access Token (Settings > Apps > API access)
-- [ ] Email support@hospitable.com to request Messaging API access
-- [ ] Create Slack workspace and bot app
+- [x] Get Hospitable API Personal Access Token (Settings > Apps > API access) and store in .env file
+- [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access (turned out to be unnecessary — Messaging API is available through the Public API and the existing PAT works)
+- [x] Create Slack workspace and bot app
+- [ ] Set up the webhook in Hospitable once you have a deployed server URL to point it at; see EDD
 - [ ] Scrape banyantree300.com for knowledge base content
 - [ ] Export historical Hospitable conversations for voice-examples.json
