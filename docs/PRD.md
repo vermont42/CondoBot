@@ -46,6 +46,8 @@
 - Conflicts get flagged with explanation
 - Proactive vacancy monitoring: CondoBot periodically scans for open slots in the near future and posts a suggestion to the approval channel to lower the price and reduce the cancellation period from 30 days to 5 days
 - Draft suggestions include the current PriceLabs price, a recommended reduced price, and the date range
+- Enable direct booking through Hospitable. There could be an invitation to join a mailing list in the condos. CondoBot could monitor an email account, answer availability questions, and book through Hospitable.
+- Amanda has some guest email addresses she scraped. CondoBot could run direct-marketing campaigns and email potential guests when there are canellations or vacancies.
 
 #### Dynamic Pricing
 

@@ -2,7 +2,7 @@
 
 ![CondoBot](CondoBot.png)
 
-An AI-assisted guest messaging system for vacation rental condos in Kailua-Kona, Hawaii. CondoBot monitors the Hospitable platform for guest inquiries, drafts replies that match Cindy's voice and tone, and sends them for human approval before messaging guests.
+An AI-assisted guest messaging system for two vacation-rental condos in Kailua-Kona, Hawaii, CondoBot monitors the Hospitable platform for guest inquiries, drafts replies that match Cindy's voice and tone, and sends them for human approval before messaging guests. Additional features are planned.
 
 > **Detailed docs:** [Product Requirements (PRD)](docs/PRD.md) | [Engineering Design (EDD)](docs/EDD.md)
 
@@ -32,17 +32,17 @@ Josh and Amanda live in Orinda, CA. Cindy lives in nearby Walnut Creek, CA.
 
 ### Communication Platform
 
-Slack. Drafts are posted to a shared approval channel (e.g., `#condobot-approvals`) as Block Kit messages with Send/Edit buttons. Josh, Amanda, and Cindy all monitor the channel — whoever sees a draft first can approve it. Edit opens a modal with the draft pre-filled for inline editing.
+Slack. Drafts are posted to a shared approval channel (`#condobot-approvals`) as Block Kit messages with Send/Edit buttons. Josh, Amanda, and Cindy all monitor the channel — whoever sees a draft first can approve it. Edit opens a modal with the draft pre-filled for inline editing.
 
 ## Properties
 
 ### Banyan Tree 300
 
-- **Address:** Unit 300, The Banyan Tree, 76-6268 Ali'i Drive, Kailua-Kona, HI 96740
+- **Address:** The Banyan Tree, Unit 300, 76-6268 Ali'i Drive, Kailua-Kona, HI 96740
 - **Type:** 2-bedroom, 2-bathroom oceanfront corner unit, 20 feet from the beach
 - **Website:** https://www.banyantree300.com
 - **Email:** banyantree300@gmail.com
-- **Status:** Operational for 1.5 years, listed on Airbnb and VRBO
+- **Status:** Operational since fall 2024, listed on Airbnb and VRBO
 
 #### Key Amenities
 
@@ -51,13 +51,15 @@ Slack. Drafts are posted to a shared approval channel (e.g., `#condobot-approval
 - 3 smart TVs
 - Gourmet kitchen
 - Beach equipment provided
-- Recently renovated in 2024
+- Fully renovated in 2024
 
 ### Kanaloa at Kona, Unit 1903
 
+- **Address:** Kanaloa at Kona, Unit 1903, 78-261 Manukai St, Kailua-Kona, HI 96740
+- **Type:** 3-bedroom, 2-bathroom oceanfront unit, 20 feet from the beach
+- **Website:** https://www.kanaloa1903.com (planned)
+- **Email:** kanaloa1903@gmail.com
 - **Status:** Closing March 9, 2026
-- **Listings:** Will be listed on Airbnb and VRBO, managed through Hospitable
-- **Details:** TBD after closing
 
 ## Response Guidelines
 
@@ -78,27 +80,13 @@ Slack. Drafts are posted to a shared approval channel (e.g., `#condobot-approval
 - Activities: https://www.banyantree300.com (activities section)
 - Local Amenities: https://www.banyantree300.com (amenities section)
 
-### Restaurant Recommendations
-
-- Da Poke Shack
-- Green Flash Coffee
-- Huggo's
-- (Additional recommendations available on website)
-
-### Activity Highlights
-
-- Manta ray night diving/snorkeling
-- Hawaii Volcanoes National Park hiking
-- Snorkeling at nearby beaches
-- (Full list on website)
-
 ## TODO
 
 - [ ] Get an Anthropic API key from https://console.anthropic.com (required for powering CondoBot — the Max subscription is for personal use only, not automation)
 - [ ] Decide where to host CondoBot (VPS, Mac Mini, Railway, Fly.io, or other)
 - [x] Get Hospitable API Personal Access Token (Settings > Apps > API access) and store in .env file
-- [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access (turned out to be unnecessary — Messaging API is available through the Public API and the existing PAT works)
+- [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access
 - [x] Create Slack workspace and bot app
-- [ ] Set up the webhook in Hospitable once you have a deployed server URL to point it at; see EDD
 - [ ] Scrape banyantree300.com for knowledge base content
 - [ ] Export historical Hospitable conversations for voice-examples.json
+- [ ] At api.slack.com, for CondoBot, in Interactivity & Shortcuts, change the Request URL from https://racecondition.software/slack/interactions to the real server endpoint
