@@ -74,11 +74,36 @@ Slack. Drafts are posted to a shared approval channel (`#condobot-approvals`) as
 
 ## Key Resources
 
-### Website Sections
+### Banyan-Website Sections
 
 - Restaurants: https://www.banyantree300.com (restaurants section)
 - Activities: https://www.banyantree300.com (activities section)
 - Local Amenities: https://www.banyantree300.com (amenities section)
+
+### Competing Kanaloa Business
+
+https://www.konacoastvacations.com/neighborhoods/kanaloa-at-kona/
+
+This has info that 1903's website could use.
+
+### YouTube Video About Kanaloa at Kona
+
+https://www.youtube.com/watch?v=1M62gp7SOk8
+
+This video answers questions like:
+What makes Kanaloa at Kona a top luxury living option in Hawaii?
+What amenities are offered at Kanaloa at Kona?
+How close is Kanaloa at Kona to the ocean and key attractions?
+What are the property features of Kanaloa at Kona condos?
+Is Kanaloa at Kona a good investment for second homes or vacation rentals?
+How does Kanaloa at Kona compare to other luxury communities on the Big Island?
+What makes the lifestyle at Kanaloa at Kona so desirable?
+
+### Kanaloa Communiqué
+
+https://kanaloacommunique.com
+
+This website is run by the Kanaloa at Kona HOA and has information about the complex and its management.
 
 ## TODO
 
