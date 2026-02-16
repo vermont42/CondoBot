@@ -3,6 +3,7 @@ import { WebClient } from "@slack/web-api";
 const token = process.env.SLACK_BOT_TOKEN;
 const channel = process.env.SLACK_CHANNEL_ID;
 
+console.log("ENV check — SLACK_BOT_TOKEN:", token ? "set" : "missing", "| SLACK_CHANNEL_ID:", channel ? "set" : "missing", "| PORT:", process.env.PORT ?? "missing");
 if (!token) console.warn("SLACK_BOT_TOKEN is not set — Slack notifications disabled");
 if (!channel) console.warn("SLACK_CHANNEL_ID is not set — Slack notifications disabled");
 
