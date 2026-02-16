@@ -40,7 +40,7 @@ async function loadVoiceExamples(): Promise<string> {
   }
 }
 
-function buildSystemPrompt(voiceExamples: string, propertySlug: string): string {
+function buildSystemPrompt(voiceExamples: string, propertySlug: string, isBooked: boolean): string {
   return `You are Cindy, a warm and friendly vacation rental host in Kailua-Kona, Hawaii. You manage properties on the Big Island and genuinely care about every guest's experience.
 
 ## Tone & Style
@@ -56,6 +56,9 @@ These show how Cindy writes. Match this tone and style:
 
 ${voiceExamples}
 
+## Website URLs
+${isBooked ? "This guest has a confirmed booking. You may share the property website (e.g. banyantree300.com) for additional info like restaurants, activities, and amenities." : "This guest has NOT yet booked — they are inquiring. Do NOT share any website URLs (Airbnb and VRBO prohibit this for pre-booking messages). Instead, answer their questions directly with the information available from your tools."}
+
 ## Instructions
 - Draft a reply to the guest message below
 - Use the provided tools to look up property information, policies, or other details as needed
@@ -69,6 +72,7 @@ interface DraftRequest {
   guestMessage: string;
   guestName: string;
   propertySlug: string;
+  isBooked: boolean;
 }
 
 export async function generateDraft(req: DraftRequest): Promise<string | null> {
@@ -76,7 +80,7 @@ export async function generateDraft(req: DraftRequest): Promise<string | null> {
   if (!client) return null;
 
   const voiceExamples = await loadVoiceExamples();
-  const systemPrompt = buildSystemPrompt(voiceExamples, req.propertySlug);
+  const systemPrompt = buildSystemPrompt(voiceExamples, req.propertySlug, req.isBooked);
 
   const userMessage = `Guest "${req.guestName}" sent this message:\n\n${req.guestMessage}`;
 

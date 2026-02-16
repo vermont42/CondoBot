@@ -26,10 +26,12 @@ export async function handleWebhook(c: Context) {
 
         // Generate AI draft and post as threaded reply
         const property = resolveProperty(listingName);
+        const isBooked = payload.data.reservation_id != null;
         generateDraft({
           guestMessage: body,
           guestName: senderName,
           propertySlug: property.slug,
+          isBooked,
         })
           .then((draft) => {
             if (draft) {
