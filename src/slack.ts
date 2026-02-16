@@ -15,15 +15,27 @@ interface GuestMessage {
   platform: string;
 }
 
-export async function notifyChannel(msg: GuestMessage) {
-  if (!slack || !channel) return;
+export async function notifyChannel(msg: GuestMessage): Promise<string | undefined> {
+  if (!slack || !channel) return undefined;
 
-  await slack.chat.postMessage({
+  const result = await slack.chat.postMessage({
     channel,
     text: [
       `*New guest message* on ${msg.listingName} (${msg.platform})`,
       `*From:* ${msg.senderName}`,
       `> ${msg.body}`,
     ].join("\n"),
+  });
+
+  return result.ts;
+}
+
+export async function postDraftReply(threadTs: string, draft: string, guestName: string) {
+  if (!slack || !channel) return;
+
+  await slack.chat.postMessage({
+    channel,
+    thread_ts: threadTs,
+    text: `*Suggested reply to ${guestName}:*\n${draft}`,
   });
 }

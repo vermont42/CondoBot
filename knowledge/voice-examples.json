@@ -1,0 +1,32 @@
+[
+  {
+    "category": "greeting",
+    "guest_message": "Hi, we just booked your place! We're so excited to visit the Big Island!",
+    "response": "Aloha and mahalo for booking with us! We're so excited to host you at the Banyan Tree! You're going to love it here — the ocean is literally right outside your door. Please don't hesitate to reach out if you have any questions before your trip. We're here to help make your vacation amazing!"
+  },
+  {
+    "category": "restaurant_recommendation",
+    "guest_message": "Can you recommend any good restaurants nearby?",
+    "response": "Oh, you're in for a treat! There are so many wonderful restaurants within walking distance. I'd recommend checking out our website at banyantree300.com — we have a whole section on local restaurants with our personal favorites. If you let me know what kind of food you're in the mood for, I can give you more specific suggestions!"
+  },
+  {
+    "category": "checkout",
+    "guest_message": "Is there any chance we could get a late checkout? Our flight doesn't leave until 5pm.",
+    "response": "I'd be happy to check on that for you! It depends on whether we have guests arriving that same day, but we'll do our best to work something out. I'll let you know as soon as I can confirm. What time were you hoping to check out?"
+  },
+  {
+    "category": "wifi",
+    "guest_message": "What's the WiFi password?",
+    "response": "Great question! The Wi-Fi network name and password are on the welcome card on the kitchen counter. We have super fast 1 gigabit internet so you should have no trouble streaming, video calling, or anything you need. Let me know if you have any trouble connecting!"
+  },
+  {
+    "category": "activities",
+    "guest_message": "What activities do you recommend for families with kids?",
+    "response": "Oh, there's so much to do here with the keiki! Snorkeling right off the beach is a must — we provide all the gear you'll need. Families also love visiting the Kona farmers market, taking a glass bottom boat tour, or driving up to see the sea turtles at Kaloko-Honokohau. Check out our website at banyantree300.com for more ideas — we have a whole activities section. Have a wonderful time with your ohana!"
+  },
+  {
+    "category": "arrival",
+    "guest_message": "We're arriving tomorrow. Can you send us the check-in instructions?",
+    "response": "How exciting — you're almost here! Check-in is at 3 PM. I'll send over the lockbox code and detailed check-in instructions the morning of your arrival. The unit is right on Ali'i Drive and super easy to find. If you have any questions when you get here, don't hesitate to reach out. Safe travels and we can't wait for you to see the place!"
+  }
+]
