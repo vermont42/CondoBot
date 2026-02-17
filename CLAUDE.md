@@ -117,6 +117,6 @@ This website is run by the Kanaloa at Kona HOA and has information about the com
 - [x] Get Hospitable API Personal Access Token (Settings > Apps > API access) and store in .env file
 - [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access
 - [x] Create Slack workspace and bot app
-- [ ] Scrape banyantree300.com for knowledge base content
+- [ ] Complete scrape of banyantree300.com for knowledge-base content
 - [ ] Export historical Hospitable conversations for voice-examples.json
 - [ ] At api.slack.com, for CondoBot, in Interactivity & Shortcuts, change the Request URL from https://racecondition.software/slack/interactions to the real server endpoint

@@ -15,6 +15,13 @@ const DEFAULT_PROPERTY: Property = {
   name: "Banyan Tree 300",
 };
 
+export function getAreaForSlug(slug: string): string {
+  for (const prop of Object.values(properties)) {
+    if (prop.slug === slug) return prop.area;
+  }
+  return DEFAULT_PROPERTY.area;
+}
+
 export function resolveProperty(listingName: string): Property {
   // Try exact match first, then case-insensitive substring match
   if (properties[listingName]) return properties[listingName];

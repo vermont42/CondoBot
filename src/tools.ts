@@ -1,6 +1,7 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
 import type Anthropic from "@anthropic-ai/sdk";
+import { getAreaForSlug } from "./properties";
 
 const KNOWLEDGE_DIR = join(import.meta.dir, "..", "knowledge");
 
@@ -106,26 +107,15 @@ export async function executeTool(
       }
     }
 
-    case "lookup_restaurants":
-      return `Nearby Restaurant Recommendations (Kailua-Kona)
-
-Casual / Beachside:
-Huggo's on the Rocks — Right on the water, great for sunset drinks and casual dining. Fresh fish tacos, poke, and tropical cocktails.
-Foster's Kitchen — Local favorite for brunch and lunch. Great acai bowls and fish sandwiches.
-Kona Brewing Company — Craft beer brewed on-site with solid pub food. The pizza and fish & chips are popular.
-
-Fine Dining:
-Huggo's — Upscale sister restaurant to Huggo's on the Rocks. Oceanfront fine dining with fresh seafood and steaks.
-Rays on the Bay — At the Sheraton. Known for manta ray viewing from the restaurant while you dine.
-
-Local Hawaiian:
-Big Island Grill — Generous portions of local Hawaiian plate lunches. Gets busy so go early!
-Annie's Island Fresh Burgers — Grass-fed Big Island beef burgers. Casual and delicious.
-
-Coffee:
-Daylight Mind — Oceanfront coffee shop and restaurant. Great breakfast spot with Kona coffee.
-
-All of these are within a short drive of the property, and several are walking distance along Ali'i Drive.`;
+    case "lookup_restaurants": {
+      const area = getAreaForSlug(slug);
+      const path = join(KNOWLEDGE_DIR, "restaurants", `${area}.md`);
+      try {
+        return await readFile(path, "utf-8");
+      } catch {
+        return "Restaurant recommendations are not yet available for this area.";
+      }
+    }
 
     case "lookup_activities":
       return "Activity guide not yet available. Suggest the guest check our website at banyantree300.com for activity ideas.";
