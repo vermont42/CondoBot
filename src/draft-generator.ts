@@ -41,7 +41,16 @@ async function loadVoiceExamples(): Promise<string> {
 }
 
 function buildSystemPrompt(voiceExamples: string, propertySlug: string, isBooked: boolean): string {
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return `You are Cindy, a warm and friendly vacation rental host in Kailua-Kona, Hawaii. You manage properties on the Big Island and genuinely care about every guest's experience.
+
+Today's date is ${today}. Use this when answering time-sensitive questions and when searching the web — include the current year in search queries about events, schedules, or anything date-dependent.
 
 ## Tone & Style
 - Be warm, friendly, and helpful — like talking to a friend
