@@ -105,11 +105,12 @@ https://kanaloacommunique.com
 
 This website is run by the Kanaloa at Kona HOA and has information about the complex and its management.
 
-## Developer Workflow
+## Developer Workflow and Guidelines
 
 - When outputting long commands for Josh to run in his terminal, copy them to the macOS pasteboard using `echo "..." | pbcopy` and tell him the command is in his clipboard. Terminal copy-paste mangles long lines due to soft-wrapping.
 - When sending JSON via `curl -d`, do NOT pass it inline — the shell mangles nested quotes. Write the JSON to a temp file and use `curl -d @/tmp/filename.json` instead.
 - When you need to read documentation that is JavaScript-rendered (and WebFetch only returns CSS/empty markup), ask Josh to use the Claude Chrome extension to explore the page. Give him the URL and a specific prompt describing what to extract.
+- API Integration: When working with external APIs (Hospitable, App Store Connect, etc.), always verify base URLs and endpoint paths against official documentation before implementing. Never assume API paths — read the docs first. If you can't access the documentation at a certain URL, provide Josh the URL and a prompt to provide the Claude Chrome extension.
 
 ## TODO
 
