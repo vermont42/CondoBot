@@ -303,7 +303,7 @@ sequenceDiagram
     participant CondoBot as 🤖 CondoBot
     participant Slack as 💬 Slack
 
-    rect rgb(230, 245, 255)
+    rect rgb(173, 216, 230)
         Note over Guest,Slack: Inbound — Guest Message to Draft
         Guest->>Platform: Sends message
         Platform->>Hospitable: Syncs message
@@ -313,7 +313,7 @@ sequenceDiagram
         CondoBot->>Slack: Posts draft as threaded reply
     end
 
-    rect rgb(255, 243, 224)
+    rect rgb(244, 194, 131)
         Note over Guest,Slack: Outbound — Approval to Guest Reply
         Slack-->>CondoBot: Approver clicks Send or Edit
         CondoBot->>Hospitable: Sends approved reply
