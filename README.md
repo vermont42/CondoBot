@@ -6,11 +6,17 @@
 [![Status: Phase 1](https://img.shields.io/badge/Status-Phase_1-f0a500?style=flat-square)](#)
 
 <p align="center">
-  <img src="CondoBot.png" alt="CondoBot" width="300" />
+  <img src="img/CondoBot.png" alt="CondoBot" width="300" />
 </p>
 
 # CondoBot
 
 An AI-powered guest messaging system for our vacation rental condos in Kailua-Kona, Hawaii. CondoBot monitors [Hospitable](https://www.hospitable.com) for incoming guest messages, drafts replies that match Cindy's warm and welcoming voice, and posts them to Slack for human approval before sending.
+
+## Flow
+
+<p align="center">
+  <img src="img/flow_diagram.png" alt="CondoBot message flow" width="700" />
+</p>
 
 **Detailed docs:** [Product Requirements (PRD)](docs/PRD.md) | [Engineering Design (EDD)](docs/EDD.md)
