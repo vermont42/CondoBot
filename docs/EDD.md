@@ -308,3 +308,45 @@ Guest                Airbnb/VRBO          Hospitable           CondoBot         
   |                      |                    |<-- send reply -----|                   |
   |<---- host reply -----|<-- routes reply ---|                    |                   |
 ```
+
+## Conversation Threading
+
+Currently, each `generateDraft()` call sees only the single incoming guest message. If a guest sends multiple messages in a thread (e.g., asks about parking, then follows up with "and what about the Wi-Fi?"), the model has no context about prior exchanges and may repeat information or miss references.
+
+### The Problem
+
+`draft-generator.ts` starts a fresh `messages` array with one user entry per invocation. The tool-use loop maintains context within a single draft generation (model calls tools, gets results, calls more tools), but nothing persists between webhook-triggered invocations.
+
+### Possible Implementations
+
+**Option A: Fetch thread from Hospitable API at draft time.** When a webhook arrives, call the Hospitable conversations endpoint to retrieve the full message thread. Map each prior message into the Anthropic `messages` array as alternating user/assistant turns before appending the new guest message. This is stateless (no local storage needed) and always reflects the source of truth.
+
+- Pro: Simple, no local state to maintain
+- Con: Adds one API call per draft generation; depends on Hospitable API latency
+
+**Option B: Store messages in SQLite locally.** The `messages` table already exists in the schema. On each webhook, persist the guest message, then query the table to reconstruct the thread. After sending an approved reply, store the host message too.
+
+- Pro: Fast local lookups, no extra API call
+- Con: State can drift if messages are sent outside CondoBot (e.g., directly in Hospitable); requires backfill logic for existing conversations
+
+**Option C: Hybrid.** Store messages locally for fast reconstruction, but periodically reconcile with Hospitable's API to catch messages sent outside CondoBot.
+
+### Recommendation
+
+Start with **Option A** — it's the simplest and avoids sync issues. The Hospitable API call adds minimal latency compared to the Anthropic API call that follows. If latency becomes a concern, migrate to Option B later.
+
+### Message Format
+
+Prior thread messages would be prepended to the `messages` array before the new guest message:
+
+```typescript
+// Pseudocode for thread-aware draft generation
+const thread = await fetchHospitableThread(conversationId);
+const messages: Anthropic.MessageParam[] = thread.map((msg) => ({
+  role: msg.sender === "guest" ? "user" : "assistant",
+  content: msg.body,
+}));
+messages.push({ role: "user", content: `Guest "${guestName}" sent this message:\n\n${newMessage}` });
+```
+
+The system prompt would need a note clarifying that earlier messages in the conversation are provided for context, and the model should draft a reply to the most recent guest message only.

@@ -113,7 +113,7 @@ This website is run by the Kanaloa at Kona HOA and has information about the com
 
 ## TODO
 
-- [ ] Get an Anthropic API key from https://console.anthropic.com (required for powering CondoBot — the Max subscription is for personal use only, not automation)
+- [x] Get an Anthropic API key from https://console.anthropic.com (required for powering CondoBot — the Max subscription is for personal use only, not automation)
 - [x] Decide where to host CondoBot (VPS, Mac Mini, Railway, Fly.io, or other) - chose Railway
 - [x] Get Hospitable API Personal Access Token (Settings > Apps > API access) and store in .env file
 - [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access
@@ -121,3 +121,4 @@ This website is run by the Kanaloa at Kona HOA and has information about the com
 - [ ] Complete scrape of banyantree300.com for knowledge-base content
 - [ ] Export historical Hospitable conversations for voice-examples.json
 - [ ] At api.slack.com, for CondoBot, in Interactivity & Shortcuts, change the Request URL from https://racecondition.software/slack/interactions to the real server endpoint
+- [ ] Add conversation threading to draft generation — pass prior messages from the Hospitable thread so the model sees the full back-and-forth, not just the latest guest message (see EDD § Conversation Threading)
