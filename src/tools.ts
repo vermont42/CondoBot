@@ -169,6 +169,8 @@ export async function executeTool(
   name: string,
   input: Record<string, string>,
 ): Promise<string> {
+  console.log(`Tool call: ${name}(${JSON.stringify(input)})`);
+
   const slug = input.property_slug ?? "banyan-tree-300";
 
   switch (name) {
