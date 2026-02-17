@@ -239,27 +239,72 @@ condobot/
 ├── CLAUDE.md                    # Project context for Claude Code
 ├── docs/
 │   ├── PRD.md                   # Product requirements document
-│   └── EDD.md                   # Engineering design document (this file)
-├── knowledge/                   # Knowledge base files
+│   ├── EDD.md                   # Engineering design document (this file)
+│   ├── hospitable-messaging-api-email.md
+│   ├── railway-setup.md
+│   └── railway-ui-guide.md
+├── knowledge/                   # Knowledge base files read by tools
+│   ├── policies.md              # House rules and policies
+│   ├── voice-examples.json      # Cindy's voice and tone examples
+│   ├── properties/
+│   │   └── banyan-tree-300.md   # Property info (amenities, check-in, parking, etc.)
+│   └── restaurants/
+│       └── kailua-kona.md       # Restaurant recommendations by area
+├── prompts/                     # Prompt templates and planning docs
+├── scripts/
+│   └── test-webhook.sh          # Send a test webhook locally
 ├── src/
+│   ├── index.ts                 # Entry point (HTTP server)
 │   ├── webhook-handler.ts       # Receives Hospitable message webhooks
 │   ├── draft-generator.ts       # Builds prompt with tools, calls Anthropic API
-│   ├── approval-notifier.ts     # Sends draft to approval channel (Slack interface)
-│   ├── slack-bot.ts             # Slack Block Kit messages, modals, interaction handlers
-│   ├── hospitable-client.ts     # Wraps Hospitable API (auth, messages, reservations, calendar)
-│   └── tools/                   # Tool definitions for Claude tool-use
-│       ├── lookup-property.ts
-│       ├── lookup-policy.ts
-│       ├── lookup-restaurants.ts
-│       ├── lookup-activities.ts
-│       ├── lookup-technology.ts
-│       ├── check-calendar.ts        # Phase 2
-│       ├── get-reservation.ts       # Phase 2
-│       ├── get-vacancy-windows.ts   # Phase 2
-│       ├── get-current-pricing.ts   # Phase 2
-│       ├── suggest-price-reduction.ts # Phase 2
-│       └── text-bonnie.ts           # Phase 3
-├── data/
-│   └── conversations.db         # SQLite: historical messages + ongoing conversations
-└── package.json
+│   ├── slack.ts                 # Slack Block Kit messages, modals, interaction handlers
+│   ├── tools.ts                 # Tool definitions and execution for Claude tool-use
+│   └── properties.ts            # Property slug/area resolution
+├── package.json
+└── tsconfig.json
+```
+
+## Flow
+
+This traces a guest message from arrival to response.
+
+### Inbound (guest message to draft)
+
+1. **Guest sends a message** on Airbnb or VRBO (e.g. "What's the Wi-Fi password?").
+
+2. **Hospitable receives it.** Hospitable aggregates Airbnb and VRBO into a unified inbox. It normalizes the message and fires a webhook (`message.created`) to CondoBot's endpoint (`POST /webhooks/hospitable`).
+
+3. **CondoBot receives the webhook** in `index.ts`, which routes it to `webhook-handler.ts`. The handler parses the payload, extracting the guest's name, message body, listing name, platform, and whether they have a reservation.
+
+4. **CondoBot posts a notification to Slack.** `slack.ts` sends the guest's message to the `#condobot-approvals` channel so Josh, Amanda, and Cindy can see it immediately. The Slack message timestamp is saved for threading.
+
+5. **CondoBot generates an AI draft.** `webhook-handler.ts` calls `draft-generator.ts`, which:
+   - Loads Cindy's voice examples from `knowledge/voice-examples.json`
+   - Builds a system prompt that instructs Claude to reply as Cindy, with rules about tone, Hawaiian words, website URLs (suppressed for unbooked guests), and plain-text formatting
+   - Sends the guest message to the Anthropic API (Claude Haiku 4.5) with tool definitions
+   - Claude may call tools (`lookup_property_info`, `lookup_restaurants`, etc.) to retrieve knowledge base files — the draft generator executes these via `tools.ts` and feeds the results back in a loop (up to 5 iterations)
+   - Claude returns the final draft reply as plain text
+
+6. **CondoBot posts the draft to Slack** as a threaded reply under the original guest message notification.
+
+### Outbound (approval to guest reply) — not yet implemented
+
+7. **An approver reviews the draft** in Slack. They can click Send to approve it as-is, or Edit to modify it first. (Currently drafts are posted as plain text; Block Kit buttons for Send/Edit are planned.)
+
+8. **CondoBot sends the approved reply** to the guest via the Hospitable Messaging API, which routes it back through the original platform (Airbnb or VRBO). The guest sees it as a normal host reply.
+
+### Summary
+
+```
+Guest                Airbnb/VRBO          Hospitable           CondoBot             Slack
+  |                      |                    |                    |                   |
+  |-- sends message ---->|                    |                    |                   |
+  |                      |-- syncs message -->|                    |                   |
+  |                      |                    |-- webhook -------->|                   |
+  |                      |                    |                    |-- notification -->|
+  |                      |                    |                    |-- AI draft ------>|
+  |                      |                    |                    |                   |
+  |                      |                    |                    |<-- approve/edit --|
+  |                      |                    |<-- send reply -----|                   |
+  |<---- host reply -----|<-- routes reply ---|                    |                   |
 ```
