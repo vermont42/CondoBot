@@ -295,6 +295,20 @@ This traces a guest message from arrival to response.
 
 ### Summary
 
+```
+Guest                Airbnb/VRBO          Hospitable           CondoBot             Slack
+  |                      |                    |                    |                   |
+  |-- sends message ---->|                    |                    |                   |
+  |                      |-- syncs message -->|                    |                   |
+  |                      |                    |-- webhook -------->|                   |
+  |                      |                    |                    |-- notification -->|
+  |                      |                    |                    |-- AI draft ------>|
+  |                      |                    |                    |                   |
+  |                      |                    |                    |<-- approve/edit --|
+  |                      |                    |<-- send reply -----|                   |
+  |<---- host reply -----|<-- routes reply ---|                    |                   |
+```
+
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
   'actorTextColor': '#1a1a1a',
