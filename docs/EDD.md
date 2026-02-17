@@ -295,18 +295,31 @@ This traces a guest message from arrival to response.
 
 ### Summary
 
-```
-Guest                Airbnb/VRBO          Hospitable           CondoBot             Slack
-  |                      |                    |                    |                   |
-  |-- sends message ---->|                    |                    |                   |
-  |                      |-- syncs message -->|                    |                   |
-  |                      |                    |-- webhook -------->|                   |
-  |                      |                    |                    |-- notification -->|
-  |                      |                    |                    |-- AI draft ------>|
-  |                      |                    |                    |                   |
-  |                      |                    |                    |<-- approve/edit --|
-  |                      |                    |<-- send reply -----|                   |
-  |<---- host reply -----|<-- routes reply ---|                    |                   |
+```mermaid
+sequenceDiagram
+    actor Guest
+    participant Platform as 🏠 Airbnb / VRBO
+    participant Hospitable as 📨 Hospitable
+    participant CondoBot as 🤖 CondoBot
+    participant Slack as 💬 Slack
+
+    rect rgb(230, 245, 255)
+        Note over Guest,Slack: Inbound — Guest Message to Draft
+        Guest->>Platform: Sends message
+        Platform->>Hospitable: Syncs message
+        Hospitable->>CondoBot: Fires webhook (message.created)
+        CondoBot->>Slack: Posts guest message notification
+        CondoBot->>CondoBot: Generates AI draft (Claude Haiku 4.5)
+        CondoBot->>Slack: Posts draft as threaded reply
+    end
+
+    rect rgb(255, 243, 224)
+        Note over Guest,Slack: Outbound — Approval to Guest Reply
+        Slack-->>CondoBot: Approver clicks Send or Edit
+        CondoBot->>Hospitable: Sends approved reply
+        Hospitable->>Platform: Routes reply
+        Platform->>Guest: Delivers host reply
+    end
 ```
 
 ## Conversation Threading
