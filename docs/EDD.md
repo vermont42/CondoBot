@@ -296,6 +296,18 @@ This traces a guest message from arrival to response.
 ### Summary
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+  'actorTextColor': '#1a1a1a',
+  'actorBkg': '#d4d4d4',
+  'actorBorder': '#555555',
+  'actorLineColor': '#555555',
+  'signalTextColor': '#1a1a1a',
+  'signalColor': '#333333',
+  'noteTextColor': '#1a1a1a',
+  'noteBkgColor': '#f5f5f5',
+  'noteBorderColor': '#666666',
+  'labelTextColor': '#1a1a1a'
+}}}%%
 sequenceDiagram
     actor Guest
     participant Platform as 🏠 Airbnb / VRBO
