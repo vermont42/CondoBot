@@ -1,7 +1,8 @@
 import type { Context } from "hono";
-import { notifyChannel, postDraftReply } from "./slack";
+import { notifyChannel, postDraftWithButtons, postPlainDraft } from "./slack";
 import { resolveProperty } from "./properties";
 import { generateDraft } from "./draft-generator";
+import { storeDraft } from "./draft-store";
 
 export async function handleWebhook(c: Context) {
   let payload;
@@ -18,6 +19,9 @@ export async function handleWebhook(c: Context) {
     const senderName = payload.data.sender?.first_name ?? payload.data.user?.first_name ?? "Unknown";
     const listingName = payload.data.property?.public_name ?? payload.data.property?.name ?? payload.data.listing?.name ?? "Unknown listing";
     const platform = payload.data.platform ?? "unknown";
+    const reservationId: string | undefined = payload.data.reservation_id ?? undefined;
+    const conversationId: string | undefined = payload.data.conversation_id;
+    const canSend = !!(reservationId || conversationId);
 
     // Post guest notification to Slack and get the thread timestamp
     notifyChannel({ body, senderName, listingName, platform })
@@ -26,7 +30,7 @@ export async function handleWebhook(c: Context) {
 
         // Generate AI draft and post as threaded reply
         const property = resolveProperty(listingName);
-        const isBooked = payload.data.reservation_id != null;
+        const isBooked = reservationId != null;
         generateDraft({
           guestMessage: body,
           guestName: senderName,
@@ -34,11 +38,33 @@ export async function handleWebhook(c: Context) {
           isBooked,
         })
           .then((draft) => {
-            if (draft) {
-              postDraftReply(threadTs, draft, senderName).catch((err) =>
-                console.error("Failed to post draft reply:", err),
+            if (!draft) return;
+
+            if (!canSend) {
+              console.warn("No reservation_id or conversation_id — posting draft without buttons");
+              postPlainDraft(threadTs, draft, senderName).catch((err) =>
+                console.error("Failed to post plain draft:", err),
               );
+              return;
             }
+
+            const draftId = crypto.randomUUID();
+            postDraftWithButtons(threadTs, draft, senderName, draftId)
+              .then((messageTs) => {
+                if (!messageTs) return;
+                storeDraft({
+                  id: draftId,
+                  reservationId,
+                  conversationId,
+                  guestName: senderName,
+                  draftText: draft,
+                  slackThreadTs: threadTs,
+                  slackMessageTs: messageTs,
+                  createdAt: Date.now(),
+                });
+                console.log(`Draft ${draftId} stored for guest ${senderName} (reservation=${reservationId ?? "none"}, conversation=${conversationId ?? "none"})`);
+              })
+              .catch((err) => console.error("Failed to post draft with buttons:", err));
           })
           .catch((err) => console.error("Draft generation failed:", err));
       })
