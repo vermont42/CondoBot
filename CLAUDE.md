@@ -99,5 +99,6 @@ Slack. Drafts are posted to a shared approval channel (e.g., `#condobot-approval
 - [ ] Get Hospitable API Personal Access Token (Settings > Apps > API access)
 - [ ] Email support@hospitable.com to request Messaging API access
 - [ ] Create Slack workspace and bot app
+- [ ] Install Railway CLI (`brew install railway` or `npm install -g @railway/cli`) and authenticate with `railway login`
 - [ ] Scrape banyantree300.com for knowledge base content
 - [ ] Export historical Hospitable conversations for voice-examples.json
