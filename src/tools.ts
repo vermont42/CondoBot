@@ -53,7 +53,7 @@ export const toolDefinitions: Anthropic.Tool[] = [
   },
   {
     name: "lookup_activities",
-    description: "Look up recommended activities and things to do near the property.",
+    description: "Look up recommended activities and things to do near the property, including beaches, hikes, water sports, cultural sites, golf, horseback riding, farm tours, and local events.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -67,7 +67,21 @@ export const toolDefinitions: Anthropic.Tool[] = [
   },
   {
     name: "lookup_technology",
-    description: "Look up technology information for the property (Wi-Fi, smart TVs, etc.).",
+    description: "Look up technology information for the property (Wi-Fi, smart TVs, Alexa, roller shades, troubleshooting).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        property_slug: {
+          type: "string",
+          description: 'The property identifier, e.g. "banyan-tree-300"',
+        },
+      },
+      required: ["property_slug"],
+    },
+  },
+  {
+    name: "lookup_amenities",
+    description: "Look up local amenities near the property: grocery stores, farmers markets, big-box stores, pharmacies, medical facilities.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -117,11 +131,34 @@ export async function executeTool(
       }
     }
 
-    case "lookup_activities":
-      return "Activity guide not yet available. Suggest the guest check our website at banyantree300.com for activity ideas.";
+    case "lookup_activities": {
+      const area = getAreaForSlug(slug);
+      const path = join(KNOWLEDGE_DIR, "activities", `${area}.md`);
+      try {
+        return await readFile(path, "utf-8");
+      } catch {
+        return "Activity recommendations are not yet available for this area.";
+      }
+    }
 
-    case "lookup_technology":
-      return "Technology guide not yet available. The property has 1 gigabit Wi-Fi and 3 smart TVs. Wi-Fi credentials are on the welcome card on the kitchen counter.";
+    case "lookup_technology": {
+      const path = join(KNOWLEDGE_DIR, "technology", `${slug}.md`);
+      try {
+        return await readFile(path, "utf-8");
+      } catch {
+        return "Technology guide is not yet available for this property.";
+      }
+    }
+
+    case "lookup_amenities": {
+      const area = getAreaForSlug(slug);
+      const path = join(KNOWLEDGE_DIR, "amenities", `${area}.md`);
+      try {
+        return await readFile(path, "utf-8");
+      } catch {
+        return "Local amenities information is not yet available for this area.";
+      }
+    }
 
     default:
       return `Unknown tool: ${name}`;
