@@ -6,7 +6,7 @@
 [![Status: Phase 1](https://img.shields.io/badge/Status-Phase_1-f0a500?style=flat-square)](#)
 
 <p align="center">
-  <img src="img/CondoBot.png" alt="CondoBot" width="300" />
+  <img src="img/CondoBot.png" alt="CondoBot" width="600" />
 </p>
 
 # CondoBot
