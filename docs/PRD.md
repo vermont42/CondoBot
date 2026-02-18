@@ -32,7 +32,7 @@
 - Slack bot (Block Kit messages, modal for editing, interaction handlers)
 - One-time historical message backfill from Hospitable API
 
-**Note:** Every guest message generates a draft — there is no classification or filtering step. Approvers ignore drafts that don't need a reply.
+**Note:** Every guest message generates a draft — there is no classification or filtering step. Approvers ignore drafts that don't need a reply. Initially, only Banyan Tree inquiries generate drafts. Support for the other three properties will be added incrementally.
 
 ### Phase 2: Calendar & Pricing-Aware Tool Use
 
@@ -63,7 +63,7 @@ PriceLabs also sets minimum stay lengths based on proximity to the date:
 
 #### A/B Test: PriceLabs vs. Hospitable Dynamic Pricing
 
-In Phase 2 or 3, run an A/B test: one condo uses PriceLabs dynamic pricing, the other uses Hospitable's built-in dynamic pricing. After a defined period, compare occupancy rates and revenue to evaluate which strategy performs better.
+In Phase 2 or 3, run an A/B test: one of the Kona condos uses PriceLabs dynamic pricing, the other Kona condo uses Hospitable's built-in dynamic pricing. After a defined period, compare occupancy rates and revenue to evaluate which strategy performs better.
 
 ### Phase 3: Twilio Integration for Bonnie & Darren
 
@@ -76,6 +76,8 @@ In Phase 2 or 3, run an A/B test: one condo uses PriceLabs dynamic pricing, the 
 - The approval channel keeps everyone in the loop without having to manually relay between guest and cleaner
 
 **Implementation note:** Use Twilio (not iMessage) for programmatic SMS. iMessage has no legitimate API. Set up a dedicated Twilio phone number for CondoBot.
+
+**Note:** Bonnie & Darren handle cleaning for the two Kona condos. Cleaner contacts for Sands of Kahana and the Tahoe house will be added when available.
 
 ## Inquiry Types & Handling
 
@@ -111,7 +113,7 @@ The knowledge base is the single biggest determinant of response quality. Struct
 
 ### Sources
 
-The banyantree300.com Squarespace site already contains most of the needed content. Claude Code can scrape the site and convert each page into structured knowledge base files. For Kanaloa 1903, equivalent content should be built as the property is set up.
+The banyantree300.com Squarespace site already contains most of the needed content for the Banyan Tree unit. Claude Code scraped the site and converted each page into structured knowledge base files. For Kanaloa 1903, equivalent content should be built as the property is set up. Information about Sands of Kahana and the Tahoe house is available at https://www.vinsonfamilyvacations.com.
 
 ### Directory Structure
 
@@ -119,13 +121,19 @@ The banyantree300.com Squarespace site already contains most of the needed conte
 knowledge/
 ├── properties/
 │   ├── banyan-tree-300.md       # Property description, amenities, check-in/out times, parking (stall #6), pool/hot tub access, beach gear, Wi-Fi (1 gig), 3 smart TVs
-│   └── kanaloa-1903.md          # TBD after closing
+│   ├── kanaloa-1903.md          # TBD after purchase closing
+│   ├── sands-of-kahana-384.md   # TBD — source: vinsonfamilyvacations.com
+│   └── skyline-drive-895.md     # TBD — source: vinsonfamilyvacations.com
 ├── restaurants/
 │   ├── banyan-tree-area.md      # Categorized: casual, mid-range, fine dining, family, shave ice, coffee
-│   └── kanaloa-area.md          # TBD
+│   ├── kanaloa-area.md          # TBD
+│   ├── kahana-area.md           # TBD — Lahaina / West Maui restaurants
+│   └── tahoe-area.md            # TBD — Tahoe City restaurants
 ├── activities/
 │   ├── banyan-tree-area.md      # Manta ray dives, volcano hikes, farm tours, festivals
-│   └── kanaloa-area.md          # TBD
+│   ├── kanaloa-area.md          # TBD
+│   ├── kahana-area.md           # TBD — West Maui activities
+│   └── tahoe-area.md            # TBD — Lake Tahoe activities
 ├── technology/
 │   └── banyan-tree-300.md       # Xumo streambox, Alexa, roller shades, Eero Wi-Fi troubleshooting
 ├── policies.md                  # House rules, late checkout pricing, cancellation, pet policy, noise, extra guests, children on lanai, parking, no parties, no illegal substances
@@ -155,6 +163,10 @@ This file is critical for matching Cindy's tone. Structure as an array:
 ```
 
 **To build this file:** Export historical conversations from Hospitable and use Claude Code to categorize and extract question/reply pairs. Aim for at least 2–3 dozen representative examples across common categories.
+
+### Response Tone by Property
+
+All replies use Cindy's warm, friendly voice. For the three Hawaii properties (Banyan Tree, Kanaloa, and Sands of Kahana), Hawaiian words like *Aloha*, *Mahalo*, and *Ohana* should be used naturally. For the Tahoe house (895 Skyline Drive), do not use Hawaiian words — keep the tone equally warm but regionally neutral.
 
 ### Common Inquiry Categories
 
@@ -190,5 +202,5 @@ At Haiku 4.5 pricing ($1/$5 per million input/output tokens):
 - ~4,000 input tokens per request (system prompt + knowledge base + conversation thread)
 - ~250 output tokens per response
 - **~$0.005 per draft response (half a cent)**
-- At 20 messages/day peak season across both properties: **~$3/month**
+- At 30 messages/day peak season across all four properties: **~$5/month**
 - With prompt caching on the system prompt: even less

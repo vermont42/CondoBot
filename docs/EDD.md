@@ -226,7 +226,7 @@ To receive Hospitable webhooks, CondoBot needs a publicly accessible URL. The fa
 
 1. **Initialize the project** — `bun init`, then `bun add hono` for the HTTP framework
 2. **Write a minimal webhook handler** — a Hono server with a `POST /webhooks/hospitable` endpoint that logs the incoming payload and returns 200
-3. **Pick a host** — Railway (`git push` deploys, free tier, easiest setup), Fly.io (similar, slightly more config), or a VPS (more control, more setup). This is still an open decision (see CLAUDE.md TODO)
+3. **Pick a host** — Railway was chosen for its `git push` deploys, free tier, and easiest setup
 4. **Deploy** — push the code and get the public URL (e.g., `https://condobot.up.railway.app`)
 5. **Configure the webhook in Hospitable** — go to Apps > Tools > Webhooks > +Add new, select "Messages", paste the URL (e.g., `https://condobot.up.railway.app/webhooks/hospitable`)
 
@@ -247,9 +247,20 @@ condobot/
 │   ├── policies.md              # House rules and policies
 │   ├── voice-examples.json      # Cindy's voice and tone examples
 │   ├── properties/
-│   │   └── banyan-tree-300.md   # Property info (amenities, check-in, parking, etc.)
-│   └── restaurants/
-│       └── kailua-kona.md       # Restaurant recommendations by area
+│   │   ├── banyan-tree-300.md   # Property info (amenities, check-in, parking, etc.)
+│   │   ├── kanaloa-1903.md      # TBD after purchase closing
+│   │   ├── sands-of-kahana-384.md # TBD — source: vinsonfamilyvacations.com
+│   │   └── skyline-drive-895.md # TBD — source: vinsonfamilyvacations.com
+│   ├── restaurants/
+│   │   ├── banyan-tree-area.md  # Kailua-Kona restaurant recommendations
+│   │   ├── kanaloa-area.md      # TBD
+│   │   ├── kahana-area.md       # TBD — Lahaina / West Maui
+│   │   └── tahoe-area.md        # TBD — Tahoe City
+│   └── activities/
+│       ├── banyan-tree-area.md  # Kona activities
+│       ├── kanaloa-area.md      # TBD
+│       ├── kahana-area.md       # TBD — West Maui
+│       └── tahoe-area.md        # TBD — Lake Tahoe
 ├── prompts/                     # Prompt templates and planning docs
 ├── scripts/
 │   └── test-webhook.sh          # Send a test webhook locally
@@ -259,7 +270,7 @@ condobot/
 │   ├── draft-generator.ts       # Builds prompt with tools, calls Anthropic API
 │   ├── slack.ts                 # Slack Block Kit messages, modals, interaction handlers
 │   ├── tools.ts                 # Tool definitions and execution for Claude tool-use
-│   └── properties.ts            # Property slug/area resolution
+│   └── properties.ts            # Property slug/area resolution — maps Hospitable property IDs to knowledge base files and response config (e.g., Hawaiian words for Hawaii properties, none for Tahoe)
 ├── package.json
 └── tsconfig.json
 ```

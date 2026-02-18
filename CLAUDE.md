@@ -2,7 +2,7 @@
 
 ![CondoBot](CondoBot.png)
 
-An AI-assisted guest messaging system for two vacation-rental condos in Kailua-Kona, Hawaii, CondoBot monitors the Hospitable platform for guest inquiries, drafts replies that match Cindy's voice and tone, and sends them for human approval before messaging guests. Additional features are planned.
+An AI-assisted guest messaging system for three vacation-rental condos in Hawaii and one vacation-rental house in California, CondoBot monitors the Hospitable platform for guest inquiries, drafts replies that match Cindy's voice and tone, and sends them for human approval before messaging guests. Additional features are planned.
 
 > **Detailed docs:** [Product Requirements (PRD)](docs/PRD.md) | [Engineering Design (EDD)](docs/EDD.md)
 
@@ -23,12 +23,13 @@ CondoBot replaces repetitive manual reply composition with AI-generated drafts. 
 
 | Name | Role |
 |------|------|
-| Josh Adams | Co-owner and developer of CondoBot |
-| Amanda Vinson | Co-owner (Josh's wife) |
-| Cindy Vinson | Amanda's mother, primary message handler. Her voice and tone are the target for AI-generated responses. |
-| Bonnie & Darren | Cleaners and caretakers. Currently coordinated by Cindy via iMessage; Twilio SMS planned for Phase 3. |
+| Josh Adams | Co-owner of both Kona units; developer of CondoBot |
+| Amanda Vinson | Co-owner of both Kona units; Josh's wife |
+| Cindy Vinson | Co-owner of Sands of Kahana (Maui) unit and Tahoe house; Amanda's mother; primary message handler. Cindy's voice and tone are the target for AI-generated responses. |
+| Bill Vinson | Co-owner of Sands of Kahana unit and Tahoe house; Amanda's father |
+| Bonnie & Darren | Cleaners and caretakers for the two Kona condos. Currently coordinated by Cindy via iMessage; Twilio SMS planned for Phase 3. |
 
-Josh and Amanda live in Orinda, CA. Cindy lives in nearby Walnut Creek, CA.
+Josh and Amanda live in Orinda, CA. Cindy and Bill live in nearby Walnut Creek, CA.
 
 ### Communication Platform
 
@@ -44,7 +45,7 @@ Slack. Drafts are posted to a shared approval channel (`#condobot-approvals`) as
 - **Email:** banyantree300@gmail.com
 - **Status:** Operational since fall 2024, listed on Airbnb and VRBO
 
-#### Key Amenities
+#### Key Amenities of Banyan Tree Unit
 
 - Two king beds + sofa sleeper
 - 1 gigabit WiFi
@@ -59,18 +60,35 @@ Slack. Drafts are posted to a shared approval channel (`#condobot-approvals`) as
 - **Type:** 3-bedroom, 2-bathroom oceanfront unit, 20 feet from the beach
 - **Website:** https://www.kanaloa1903.com (planned)
 - **Email:** kanaloa1903@gmail.com
-- **Status:** Closing March 9, 2026
+- **Status:** Purchase closing March 9, 2026; will be listed on Airbnb and VRBO after setup
+
+### Sands of Kahana, Unit 384
+
+- **Address:** 4299 Lower Honoapiilani Rd, Lahaina, HI 96761
+- **Type:** 3-bedroom, 3-bathroom oceanfront unit, 30 feet from the beach
+- **Website:** https://www.vinsonfamilyvacations.com
+- **Email:** cindy@vinson.org
+- **Status:** Operational since 1998
+
+### 895 Skyline Drive
+
+- **Address:** 895 Skyline Drive, Tahoe City, CA 96145
+- **Type:** 3-bedroom, 3-bathroom house overlooking Lake Tahoe
+- **Website:** https://www.vinsonfamilyvacations.com
+- **Email:** cindy@vinson.org
+- **Status:** Operational since 1990
 
 ## Response Guidelines
 
 - **Identity:** Message as "Cindy"
 - **Tone:** Friendly, helpful, warm
 - **Voice source of truth:** `knowledge/voice-examples.json` defines Cindy's style. The system prompt should include representative examples from this file.
-- **Hawaiian hospitality:** Use Hawaiian words naturally:
+- **Hawaiian hospitality:** For the units in Hawaii, use Hawaiian words naturally:
   - *Mahalo* (thank you)
   - *Aloha* (hello/goodbye/love)
   - *Ohana* (family)
   - *Mele Kalikimaka* (Merry Christmas, when seasonal)
+Do not use Hawaiian words when answering inquiries about the California house.
 
 ## Key Resources
 
@@ -119,8 +137,9 @@ This website is run by the Kanaloa at Kona HOA and has information about the com
 - [x] Get Hospitable API Personal Access Token (Settings > Apps > API access) and store in .env file
 - [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access
 - [x] Create Slack workspace and bot app
+- [ ] Add conversation threading to draft generation — pass prior messages from the Hospitable thread so the model sees the full back-and-forth, not just the latest guest message (see EDD § Conversation Threading)
+- [ ] For now, have CondoBot ignore all inquiries that are not for the Banyan Tree unit
+- [ ] Add support for inquiries about the other three properties
 - [ ] Install the Railway CLI
 - [ ] Complete scrape of banyantree300.com for knowledge-base content
 - [ ] Export historical Hospitable conversations for voice-examples.json
-- [ ] At api.slack.com, for CondoBot, in Interactivity & Shortcuts, change the Request URL from https://racecondition.software/slack/interactions to the real server endpoint
-- [ ] Add conversation threading to draft generation — pass prior messages from the Hospitable thread so the model sees the full back-and-forth, not just the latest guest message (see EDD § Conversation Threading)
