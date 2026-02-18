@@ -28,6 +28,8 @@ CondoBot replaces repetitive manual reply composition with AI-generated drafts. 
 | Cindy Vinson | Co-owner of Sands of Kahana (Maui) unit and Tahoe house; Amanda's mother; primary message handler. Cindy's voice and tone are the target for AI-generated responses. |
 | Bill Vinson | Co-owner of Sands of Kahana unit and Tahoe house; Amanda's father |
 | Bonnie & Darren | Cleaners and caretakers for the two Kona condos. Currently coordinated by Cindy via iMessage; Twilio SMS planned for Phase 3. |
+| Precilla | Cleaner for Sands of Kahana |
+| José | Cleaner for Tahoe house |
 
 Josh and Amanda live in Orinda, CA. Cindy and Bill live in nearby Walnut Creek, CA.
 
@@ -66,17 +68,17 @@ Slack. Drafts are posted to a shared approval channel (`#condobot-approvals`) as
 
 - **Address:** 4299 Lower Honoapiilani Rd, Lahaina, HI 96761
 - **Type:** 3-bedroom, 3-bathroom oceanfront unit, 30 feet from the beach
-- **Website:** https://www.vinsonfamilyvacations.com
+- **Website:** https://www.vinsonvacationhomes.com (needs updating)
 - **Email:** cindy@vinson.org
-- **Status:** Operational since 1998
+- **Status:** Operational since 1995
 
 ### 895 Skyline Drive
 
 - **Address:** 895 Skyline Drive, Tahoe City, CA 96145
 - **Type:** 3-bedroom, 3-bathroom house overlooking Lake Tahoe
-- **Website:** https://www.vinsonfamilyvacations.com
+- **Website:** https://www.vinsonvacationhomes.com (needs updating)
 - **Email:** cindy@vinson.org
-- **Status:** Operational since 1990
+- **Status:** Operational since 1993
 
 ## Response Guidelines
 

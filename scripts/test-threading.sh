@@ -39,9 +39,17 @@ if [[ -z "${HOSPITABLE_API_TOKEN:-}" ]]; then
   exit 1
 fi
 
-RESERVATION_ID=$(curl -sf https://public.api.hospitable.com/v2/reservations \
+# Fetch properties first, then get reservations for the first property
+PROPERTY_ID=$(curl -sf https://public.api.hospitable.com/v2/properties \
   -H "Authorization: Bearer $HOSPITABLE_API_TOKEN" \
   -H "Accept: application/json" | jq -r '.data[0].id // empty')
+
+RESERVATION_ID=""
+if [[ -n "$PROPERTY_ID" ]]; then
+  RESERVATION_ID=$(curl -sf "https://public.api.hospitable.com/v2/reservations?properties[]=$PROPERTY_ID" \
+    -H "Authorization: Bearer $HOSPITABLE_API_TOKEN" \
+    -H "Accept: application/json" | jq -r '.data[0].id // empty')
+fi
 
 if [[ -z "$RESERVATION_ID" ]]; then
   echo "ERROR: Could not fetch a reservation from Hospitable API."
