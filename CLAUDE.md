@@ -138,7 +138,7 @@ This website is run by the Kanaloa at Kona HOA and has information about the com
 - [x] Email support@hospitable.com from Amanda's email account requesting Messaging API access
 - [x] Create Slack workspace and bot app
 - [ ] Add conversation threading to draft generation — pass prior messages from the Hospitable thread so the model sees the full back-and-forth, not just the latest guest message (see EDD § Conversation Threading)
-- [ ] For now, have CondoBot ignore all inquiries that are not for the Banyan Tree unit
+- [x] For now, have CondoBot ignore all inquiries that are not for the Banyan Tree unit
 - [ ] Add support for inquiries about the other three properties
 - [ ] Install the Railway CLI
 - [ ] Complete scrape of banyantree300.com for knowledge-base content

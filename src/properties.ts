@@ -2,17 +2,28 @@ interface Property {
   slug: string;
   area: string;
   name: string;
+  supported: boolean;
 }
 
-const properties: Record<string, Property> = {
-  // Map Hospitable property names/IDs to our knowledge base slugs.
-  // For MVP, everything defaults to banyan-tree-300.
-};
-
-const DEFAULT_PROPERTY: Property = {
+const BANYAN_TREE: Property = {
   slug: "banyan-tree-300",
   area: "kailua-kona",
   name: "Banyan Tree 300",
+  supported: true,
+};
+
+const properties: Record<string, Property> = {
+  // Exact match for Airbnb listing name
+  "Gorgeous Unit, Stunning Views!": BANYAN_TREE,
+  // Substring match for VRBO listing name
+  "banyan tree": BANYAN_TREE,
+};
+
+const DEFAULT_PROPERTY: Property = {
+  slug: "unknown",
+  area: "unknown",
+  name: "Unknown",
+  supported: false,
 };
 
 export function getAreaForSlug(slug: string): string {

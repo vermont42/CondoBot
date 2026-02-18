@@ -23,13 +23,19 @@ export async function handleWebhook(c: Context) {
     const conversationId: string | undefined = payload.data.conversation_id;
     const canSend = !!(reservationId || conversationId);
 
+    // Resolve property and skip unsupported listings
+    const property = resolveProperty(listingName);
+    if (!property.supported) {
+      console.log(`Skipping unsupported property: "${listingName}"`);
+      return c.json({ status: "received" });
+    }
+
     // Post guest notification to Slack and get the thread timestamp
     notifyChannel({ body, senderName, listingName, platform })
       .then((threadTs) => {
         if (!threadTs) return;
 
         // Generate AI draft and post as threaded reply
-        const property = resolveProperty(listingName);
         const isBooked = reservationId != null;
         generateDraft({
           guestMessage: body,

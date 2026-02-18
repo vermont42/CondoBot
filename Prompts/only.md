@@ -1,0 +1,1 @@
+See screenshot SOK.png . There is a problem. An inquiry came in about the Sands of Kahana unit, but CondoBot currently only knows about the Banyan Tree unit. Please modify CondoBot so it only proccesses inquiries about the Banyan Tree unit. Support for the other two condos and the Tahoe house will be added later.
