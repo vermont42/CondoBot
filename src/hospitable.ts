@@ -8,6 +8,50 @@ if (!HOSPITABLE_API_TOKEN) {
   console.warn("HOSPITABLE_API_TOKEN is not set — message sending disabled");
 }
 
+export interface HospitableMessage {
+  body: string;
+  sender_type: "host" | "guest";
+  created_at: string;
+  source: string;
+}
+
+interface HospitableMessagesResponse {
+  data: HospitableMessage[];
+}
+
+export async function getReservationMessages(
+  reservationId: string,
+): Promise<HospitableMessage[] | null> {
+  if (!HOSPITABLE_API_TOKEN) {
+    console.warn("HOSPITABLE_API_TOKEN not set — cannot fetch messages");
+    return null;
+  }
+
+  const url = `${BASE_URL}/reservations/${reservationId}/messages`;
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${HOSPITABLE_API_TOKEN}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.warn(`Failed to fetch reservation messages (${res.status}): ${text}`);
+      return null;
+    }
+
+    const json = (await res.json()) as HospitableMessagesResponse;
+    return json.data;
+  } catch (err) {
+    console.warn("Error fetching reservation messages:", err);
+    return null;
+  }
+}
+
 export async function sendMessageToGuest(
   opts: { reservationId?: string; conversationId?: string },
   messageBody: string,

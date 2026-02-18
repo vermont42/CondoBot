@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { toolDefinitions, executeTool } from "./tools";
+import { getReservationMessages, type HospitableMessage } from "./hospitable";
 
 const MAX_TOOL_ITERATIONS = 5;
 const MODEL = "claude-haiku-4-5-20251001";
@@ -40,7 +41,7 @@ async function loadVoiceExamples(): Promise<string> {
   }
 }
 
-function buildSystemPrompt(voiceExamples: string, propertySlug: string, isBooked: boolean): string {
+function buildSystemPrompt(voiceExamples: string, propertySlug: string, isBooked: boolean, hasThread: boolean): string {
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
@@ -82,7 +83,10 @@ ${isBooked ? "This guest has a confirmed booking. You may share the property web
 - Only include information you've verified via the tools — don't make up specific details
 - Do NOT include a subject line or greeting prefix like "Re:" — just write the message body
 - Sign off naturally (no formal signature block needed)
-- Write in plain text only — no Markdown, no **bold**, no bullet lists, no headers. Your reply will be sent as a chat message, not rendered as a document.`;
+- Write in plain text only — no Markdown, no **bold**, no bullet lists, no headers. Your reply will be sent as a chat message, not rendered as a document.${hasThread ? `
+
+## Conversation Context
+The messages array includes prior messages from this conversation thread. Earlier messages are provided for context so you understand what has already been discussed. Draft your reply to the MOST RECENT guest message only — do not re-answer questions that were already addressed in previous replies. If the guest is following up or referring to something discussed earlier, use that context to give a coherent, informed response.` : ""}`;
 }
 
 interface DraftRequest {
@@ -90,6 +94,119 @@ interface DraftRequest {
   guestName: string;
   propertySlug: string;
   isBooked: boolean;
+  reservationId?: string;
+}
+
+function deduplicateCurrentMessage(
+  messages: HospitableMessage[],
+  currentMessage: string,
+): HospitableMessage[] {
+  if (messages.length === 0) return messages;
+
+  const last = messages[messages.length - 1]!;
+  const normalized = currentMessage.trim().toLowerCase();
+
+  if (
+    last.sender_type === "guest" &&
+    last.body.trim().toLowerCase() === normalized
+  ) {
+    return messages.slice(0, -1);
+  }
+
+  return messages;
+}
+
+function mergeConsecutiveRoles(
+  messages: Array<{ role: "user" | "assistant"; content: string }>,
+): Anthropic.MessageParam[] {
+  if (messages.length === 0) return [];
+
+  const first = messages[0]!;
+  const merged: Anthropic.MessageParam[] = [];
+  let current = { role: first.role, content: first.content };
+
+  for (let i = 1; i < messages.length; i++) {
+    const msg = messages[i]!;
+    if (msg.role === current.role) {
+      current.content += "\n\n" + msg.content;
+    } else {
+      merged.push({ role: current.role, content: current.content });
+      current = { role: msg.role, content: msg.content };
+    }
+  }
+  merged.push({ role: current.role, content: current.content });
+
+  // Anthropic API requires first message to be "user"
+  if (merged[0]?.role === "assistant") {
+    merged.unshift({ role: "user", content: "[Prior conversation context]" });
+  }
+
+  return merged;
+}
+
+function ensureAlternation(
+  messages: Anthropic.MessageParam[],
+): Anthropic.MessageParam[] {
+  if (messages.length === 0) return messages;
+
+  const result: Anthropic.MessageParam[] = [messages[0]!];
+
+  for (let i = 1; i < messages.length; i++) {
+    const msg = messages[i]!;
+    const prev = result[result.length - 1]!;
+    if (msg.role === prev.role) {
+      // Merge content — both could be string or ContentBlock[]
+      const prevText = typeof prev.content === "string" ? prev.content : "";
+      const curText = typeof msg.content === "string" ? msg.content : "";
+      if (prevText && curText) {
+        result[result.length - 1] = {
+          role: prev.role,
+          content: prevText + "\n\n" + curText,
+        };
+      }
+    } else {
+      result.push(msg);
+    }
+  }
+
+  // Ensure first message is "user"
+  if (result[0]?.role === "assistant") {
+    result.unshift({ role: "user", content: "[Prior conversation context]" });
+  }
+
+  return result;
+}
+
+async function buildThreadMessages(
+  reservationId: string | undefined,
+  currentGuestMessage: string,
+): Promise<Anthropic.MessageParam[]> {
+  if (!reservationId) return [];
+
+  const rawMessages = await getReservationMessages(reservationId);
+  if (!rawMessages || rawMessages.length === 0) return [];
+
+  // Keep only guest and host messages
+  const filtered = rawMessages.filter(
+    (m) => m.sender_type === "guest" || m.sender_type === "host",
+  );
+
+  // Remove the current incoming message from the end
+  const deduplicated = deduplicateCurrentMessage(filtered, currentGuestMessage);
+  if (deduplicated.length === 0) return [];
+
+  // Truncate to most recent 20 messages
+  const recent = deduplicated.slice(-20);
+
+  // Map to Anthropic roles
+  const mapped = recent.map((m) => ({
+    role: (m.sender_type === "guest" ? "user" : "assistant") as
+      | "user"
+      | "assistant",
+    content: m.body,
+  }));
+
+  return mergeConsecutiveRoles(mapped);
 }
 
 export async function generateDraft(req: DraftRequest): Promise<string | null> {
@@ -97,14 +214,20 @@ export async function generateDraft(req: DraftRequest): Promise<string | null> {
   if (!client) return null;
 
   const voiceExamples = await loadVoiceExamples();
-  const systemPrompt = buildSystemPrompt(voiceExamples, req.propertySlug, req.isBooked);
+
+  // Fetch conversation thread (returns [] on failure or if unavailable)
+  const threadMessages = await buildThreadMessages(req.reservationId, req.guestMessage);
+  const hasThread = threadMessages.length > 0;
+
+  const systemPrompt = buildSystemPrompt(voiceExamples, req.propertySlug, req.isBooked, hasThread);
 
   const userMessage = `Guest "${req.guestName}" sent this message:\n\n${req.guestMessage}`;
 
   try {
-    let messages: Anthropic.MessageParam[] = [
+    let messages: Anthropic.MessageParam[] = ensureAlternation([
+      ...threadMessages,
       { role: "user", content: userMessage },
-    ];
+    ]);
 
     for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
       const response = await client.messages.create({

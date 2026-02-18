@@ -42,6 +42,7 @@ export async function handleWebhook(c: Context) {
           guestName: senderName,
           propertySlug: property.slug,
           isBooked,
+          reservationId,
         })
           .then((draft) => {
             if (!draft) return;
