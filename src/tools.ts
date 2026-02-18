@@ -5,6 +5,7 @@ import { getAreaForSlug } from "./properties";
 
 const KNOWLEDGE_DIR = join(import.meta.dir, "..", "knowledge");
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
+const VALID_SLUG = /^[a-z0-9-]+$/;
 
 async function searchWeb(query: string): Promise<string> {
   console.log(`Web search: "${query}"`);
@@ -55,6 +56,14 @@ async function searchWeb(query: string): Promise<string> {
   } catch (err) {
     console.error("Web search error:", err);
     return "Web search failed. Please rely on general knowledge for this topic.";
+  }
+}
+
+async function lookupKnowledgeFile(path: string, errorLabel: string): Promise<string> {
+  try {
+    return await readFile(path, "utf-8");
+  } catch {
+    return `${errorLabel} is not yet available.`;
   }
 }
 
@@ -173,63 +182,46 @@ export async function executeTool(
 
   const slug = input.property_slug ?? "banyan-tree-300";
 
+  if (!VALID_SLUG.test(slug)) {
+    return `Invalid property slug: "${slug}".`;
+  }
+
   switch (name) {
-    case "lookup_property_info": {
-      const path = join(KNOWLEDGE_DIR, "properties", `${slug}.md`);
-      try {
-        return await readFile(path, "utf-8");
-      } catch {
-        return `No property information found for "${slug}".`;
-      }
-    }
+    case "lookup_property_info":
+      return lookupKnowledgeFile(
+        join(KNOWLEDGE_DIR, "properties", `${slug}.md`),
+        `No property information found for "${slug}"`,
+      );
 
-    case "lookup_policy": {
-      const path = join(KNOWLEDGE_DIR, "policies.md");
-      try {
-        return await readFile(path, "utf-8");
-      } catch {
-        return "Policy information is not yet available.";
-      }
-    }
+    case "lookup_policy":
+      return lookupKnowledgeFile(
+        join(KNOWLEDGE_DIR, "policies.md"),
+        "Policy information",
+      );
 
-    case "lookup_restaurants": {
-      const area = getAreaForSlug(slug);
-      const path = join(KNOWLEDGE_DIR, "restaurants", `${area}.md`);
-      try {
-        return await readFile(path, "utf-8");
-      } catch {
-        return "Restaurant recommendations are not yet available for this area.";
-      }
-    }
+    case "lookup_restaurants":
+      return lookupKnowledgeFile(
+        join(KNOWLEDGE_DIR, "restaurants", `${getAreaForSlug(slug)}.md`),
+        "Restaurant recommendations for this area",
+      );
 
-    case "lookup_activities": {
-      const area = getAreaForSlug(slug);
-      const path = join(KNOWLEDGE_DIR, "activities", `${area}.md`);
-      try {
-        return await readFile(path, "utf-8");
-      } catch {
-        return "Activity recommendations are not yet available for this area.";
-      }
-    }
+    case "lookup_activities":
+      return lookupKnowledgeFile(
+        join(KNOWLEDGE_DIR, "activities", `${getAreaForSlug(slug)}.md`),
+        "Activity recommendations for this area",
+      );
 
-    case "lookup_technology": {
-      const path = join(KNOWLEDGE_DIR, "technology", `${slug}.md`);
-      try {
-        return await readFile(path, "utf-8");
-      } catch {
-        return "Technology guide is not yet available for this property.";
-      }
-    }
+    case "lookup_technology":
+      return lookupKnowledgeFile(
+        join(KNOWLEDGE_DIR, "technology", `${slug}.md`),
+        "Technology guide for this property",
+      );
 
-    case "lookup_amenities": {
-      const area = getAreaForSlug(slug);
-      const path = join(KNOWLEDGE_DIR, "amenities", `${area}.md`);
-      try {
-        return await readFile(path, "utf-8");
-      } catch {
-        return "Local amenities information is not yet available for this area.";
-      }
-    }
+    case "lookup_amenities":
+      return lookupKnowledgeFile(
+        join(KNOWLEDGE_DIR, "amenities", `${getAreaForSlug(slug)}.md`),
+        "Local amenities information for this area",
+      );
 
     case "web_search": {
       const query = input.query ?? "";

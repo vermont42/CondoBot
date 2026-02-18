@@ -11,6 +11,8 @@ export interface PendingDraft {
 
 const drafts = new Map<string, PendingDraft>();
 
+const STALE_DRAFT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 export function storeDraft(draft: PendingDraft): void {
   drafts.set(draft.id, draft);
 }
@@ -21,4 +23,18 @@ export function getDraft(id: string): PendingDraft | undefined {
 
 export function deleteDraft(id: string): void {
   drafts.delete(id);
+}
+
+export function cleanStaleDrafts(): void {
+  const now = Date.now();
+  let cleaned = 0;
+  for (const [id, draft] of drafts) {
+    if (now - draft.createdAt > STALE_DRAFT_TTL_MS) {
+      drafts.delete(id);
+      cleaned++;
+    }
+  }
+  if (cleaned > 0) {
+    console.log(`Cleaned ${cleaned} stale draft(s)`);
+  }
 }

@@ -77,7 +77,7 @@ export async function postDraftWithButtons(
 export async function updateDraftMessage(
   messageTs: string,
   threadTs: string,
-  originalDraft: string,
+  sentText: string,
   guestName: string,
   approverName: string,
   wasEdited: boolean,
@@ -102,7 +102,7 @@ export async function updateDraftMessage(
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*Reply to ${guestName}:*\n${originalDraft}`,
+          text: `*Reply to ${guestName}:*\n${sentText}`,
         },
       },
       {

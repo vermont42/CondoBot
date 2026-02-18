@@ -3,9 +3,16 @@ import { getDraft, deleteDraft } from "./draft-store";
 import { sendMessageToGuest } from "./hospitable";
 import { updateDraftMessage, openEditModal } from "./slack";
 
-export async function handleSlackInteraction(c: Context) {
-  const formData = await c.req.parseBody();
-  const payload = JSON.parse(formData.payload as string);
+export async function handleSlackInteraction(c: Context, rawBody?: string) {
+  let payload: any;
+  try {
+    // Parse URL-encoded form body to extract the "payload" field
+    const text = rawBody ?? await c.req.text();
+    const params = new URLSearchParams(text);
+    payload = JSON.parse(params.get("payload") ?? "");
+  } catch {
+    return c.json({ error: "Invalid payload" }, 400);
+  }
 
   if (payload.type === "block_actions") {
     // Acknowledge immediately — Slack requires 200 within 3 seconds
@@ -25,7 +32,7 @@ export async function handleSlackInteraction(c: Context) {
 
     if (action.action_id === "approve_draft") {
       // Process async so we respond to Slack within 3s
-      processApproval(draft, userName, false).catch((err) =>
+      processApproval(draft, draft.draftText, userName, false).catch((err) =>
         console.error("Approval processing failed:", err),
       );
     } else if (action.action_id === "edit_draft") {
@@ -42,7 +49,12 @@ export async function handleSlackInteraction(c: Context) {
     const callbackId = payload.view?.callback_id;
 
     if (callbackId === "edit_draft_modal") {
-      const metadata = JSON.parse(payload.view.private_metadata);
+      let metadata: any;
+      try {
+        metadata = JSON.parse(payload.view.private_metadata);
+      } catch {
+        return c.json({ error: "Invalid metadata" }, 400);
+      }
       const draftId = metadata.draftId;
       const editedText =
         payload.view.state.values.draft_input.draft_text.value;
@@ -55,10 +67,8 @@ export async function handleSlackInteraction(c: Context) {
         return c.json({ response_action: "clear" });
       }
 
-      // Update draft text for the async handler
-      draft.draftText = editedText;
-
-      processApproval(draft, userName, true).catch((err) =>
+      // Capture text to send — don't mutate the shared draft object
+      processApproval(draft, editedText, userName, true).catch((err) =>
         console.error("Edit+send processing failed:", err),
       );
 
@@ -71,19 +81,20 @@ export async function handleSlackInteraction(c: Context) {
 
 async function processApproval(
   draft: { id: string; reservationId?: string; conversationId?: string; guestName: string; draftText: string; slackThreadTs: string; slackMessageTs: string },
+  textToSend: string,
   approverName: string,
   wasEdited: boolean,
 ): Promise<void> {
   try {
     await sendMessageToGuest(
       { reservationId: draft.reservationId, conversationId: draft.conversationId },
-      draft.draftText,
+      textToSend,
     );
 
     await updateDraftMessage(
       draft.slackMessageTs,
       draft.slackThreadTs,
-      draft.draftText,
+      textToSend,
       draft.guestName,
       approverName,
       wasEdited,

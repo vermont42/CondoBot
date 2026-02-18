@@ -39,7 +39,7 @@ export function resolveProperty(listingName: string): Property {
 
   const lower = listingName.toLowerCase();
   for (const [key, prop] of Object.entries(properties)) {
-    if (lower.includes(key.toLowerCase()) || key.toLowerCase().includes(lower)) {
+    if (lower.includes(key.toLowerCase())) {
       return prop;
     }
   }

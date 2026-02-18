@@ -3,6 +3,7 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { toolDefinitions, executeTool } from "./tools";
 import { getReservationMessages, type HospitableMessage } from "./hospitable";
+import { getAreaForSlug } from "./properties";
 
 const MAX_TOOL_ITERATIONS = 5;
 const MODEL = "claude-haiku-4-5-20251001";
@@ -41,6 +42,20 @@ async function loadVoiceExamples(): Promise<string> {
   }
 }
 
+function getLocationForSlug(slug: string): string {
+  const area = getAreaForSlug(slug);
+  switch (area) {
+    case "kailua-kona":
+      return "Kailua-Kona, on the Big Island of Hawaii";
+    case "lahaina":
+      return "Lahaina, Maui, Hawaii";
+    case "tahoe-city":
+      return "Tahoe City, California";
+    default:
+      return "Hawaii";
+  }
+}
+
 function buildSystemPrompt(voiceExamples: string, propertySlug: string, isBooked: boolean, hasThread: boolean): string {
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -49,15 +64,26 @@ function buildSystemPrompt(voiceExamples: string, propertySlug: string, isBooked
     day: "numeric",
   });
 
-  return `You are Cindy, a warm and friendly vacation rental host in Kailua-Kona, Hawaii. You manage properties on the Big Island and genuinely care about every guest's experience.
+  const location = getLocationForSlug(propertySlug);
+  const isHawaii = !location.includes("California");
+
+  const hawaiianWords = isHawaii
+    ? `- Use Hawaiian words naturally: Aloha (hello/goodbye), Mahalo (thank you), Ohana (family), Keiki (children)`
+    : `- Do NOT use Hawaiian words — this property is in California`;
+
+  const geoContext = isHawaii
+    ? `"Kailua-Kona Big Island" or "Kona Hawaii"`
+    : `"Tahoe City" or "Lake Tahoe California"`;
+
+  return `You are Cindy, a warm and friendly vacation rental host in ${location}. You manage vacation rental properties and genuinely care about every guest's experience.
 
 Today's date is ${today}. Use this when answering time-sensitive questions and when searching the web — include the current year in search queries about events, schedules, or anything date-dependent.
 
 ## Tone & Style
 - Be warm, friendly, and helpful — like talking to a friend
-- Use Hawaiian words naturally: Aloha (hello/goodbye), Mahalo (thank you), Ohana (family), Keiki (children)
+${hawaiianWords}
 - Keep replies concise but thorough — answer the question fully without being verbose
-- Be enthusiastic about Hawaii and the property
+- Be enthusiastic about the area and the property
 - If you don't know something specific, offer to find out rather than guessing
 - Never mention that you are an AI or automated system — you are Cindy
 
@@ -72,7 +98,7 @@ ${isBooked ? "This guest has a confirmed booking. You may share the property web
 ## Tool Usage Priority
 1. Always check the knowledge-base tools first (lookup_property_info, lookup_policy, lookup_restaurants, lookup_activities, lookup_technology, lookup_amenities) — they contain verified, curated information.
 2. Only use web_search for topics not covered by the knowledge base (e.g. specific activities like spearfishing, tour operators, airport transport, weather, local events).
-3. When searching the web, include geographic context in your query (e.g. "Kailua-Kona Big Island" or "Kona Hawaii").
+3. When searching the web, include geographic context in your query (e.g. ${geoContext}).
 4. Never share raw URLs from web search results with guests — summarize the information in your own voice.
 5. If web search returns poor or no results, fall back to general knowledge and offer to find out more for the guest.
 
@@ -144,43 +170,10 @@ function mergeConsecutiveRoles(
   return merged;
 }
 
-function ensureAlternation(
-  messages: Anthropic.MessageParam[],
-): Anthropic.MessageParam[] {
-  if (messages.length === 0) return messages;
-
-  const result: Anthropic.MessageParam[] = [messages[0]!];
-
-  for (let i = 1; i < messages.length; i++) {
-    const msg = messages[i]!;
-    const prev = result[result.length - 1]!;
-    if (msg.role === prev.role) {
-      // Merge content — both could be string or ContentBlock[]
-      const prevText = typeof prev.content === "string" ? prev.content : "";
-      const curText = typeof msg.content === "string" ? msg.content : "";
-      if (prevText && curText) {
-        result[result.length - 1] = {
-          role: prev.role,
-          content: prevText + "\n\n" + curText,
-        };
-      }
-    } else {
-      result.push(msg);
-    }
-  }
-
-  // Ensure first message is "user"
-  if (result[0]?.role === "assistant") {
-    result.unshift({ role: "user", content: "[Prior conversation context]" });
-  }
-
-  return result;
-}
-
 async function buildThreadMessages(
   reservationId: string | undefined,
   currentGuestMessage: string,
-): Promise<Anthropic.MessageParam[]> {
+): Promise<Array<{ role: "user" | "assistant"; content: string }>> {
   if (!reservationId) return [];
 
   const rawMessages = await getReservationMessages(reservationId);
@@ -199,14 +192,12 @@ async function buildThreadMessages(
   const recent = deduplicated.slice(-20);
 
   // Map to Anthropic roles
-  const mapped = recent.map((m) => ({
+  return recent.map((m) => ({
     role: (m.sender_type === "guest" ? "user" : "assistant") as
       | "user"
       | "assistant",
     content: m.body,
   }));
-
-  return mergeConsecutiveRoles(mapped);
 }
 
 export async function generateDraft(req: DraftRequest): Promise<string | null> {
@@ -224,7 +215,8 @@ export async function generateDraft(req: DraftRequest): Promise<string | null> {
   const userMessage = `Guest "${req.guestName}" sent this message:\n\n${req.guestMessage}`;
 
   try {
-    let messages: Anthropic.MessageParam[] = ensureAlternation([
+    // Merge all messages (thread + current) in one pass
+    let messages: Anthropic.MessageParam[] = mergeConsecutiveRoles([
       ...threadMessages,
       { role: "user", content: userMessage },
     ]);
