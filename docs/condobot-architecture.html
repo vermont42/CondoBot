@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CondoBot Architecture Explorer</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: #0f0f14; color: #e2e2e8; height: 100vh; overflow: hidden;
+}
+.layout { display: flex; height: 100vh; }
+.sidebar {
+  width: 280px; background: #16161e; border-right: 1px solid #2a2a35;
+  overflow-y: auto; padding: 16px; flex-shrink: 0;
+}
+.sidebar h1 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.sidebar .subtitle { font-size: 11px; color: #6b7280; margin-bottom: 20px; }
+.section { margin-bottom: 20px; }
+.section-title {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #6b7280; margin-bottom: 8px;
+}
+.preset-btn {
+  display: block; width: 100%; padding: 7px 10px; margin-bottom: 4px;
+  background: #1e1e28; border: 1px solid #2a2a35; border-radius: 6px;
+  color: #c4c4cc; font-size: 12px; cursor: pointer; text-align: left;
+  transition: all 0.15s;
+}
+.preset-btn:hover { background: #26263a; border-color: #3a3a50; }
+.preset-btn.active { background: #2a2a44; border-color: #6366f1; color: #e2e2e8; }
+.check-row {
+  display: flex; align-items: center; gap: 8px; padding: 5px 0; cursor: pointer;
+  font-size: 12px; color: #c4c4cc;
+}
+.check-row:hover { color: #e2e2e8; }
+.check-row input { accent-color: #6366f1; }
+.color-dot {
+  width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+}
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.canvas-wrap { flex: 1; position: relative; overflow: hidden; background: #0f0f14; }
+.canvas-wrap svg { width: 100%; height: 100%; }
+.zoom-controls {
+  position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; z-index: 5;
+}
+.zoom-btn {
+  width: 30px; height: 30px; background: #1e1e28cc; border: 1px solid #2a2a35;
+  border-radius: 6px; color: #c4c4cc; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);
+}
+.zoom-btn:hover { background: #26263acc; border-color: #3a3a50; }
+.legend {
+  position: absolute; bottom: 12px; left: 12px; background: #16161ecc;
+  border: 1px solid #2a2a35; border-radius: 8px; padding: 10px 14px;
+  font-size: 10px; backdrop-filter: blur(8px); z-index: 5;
+}
+.legend-title { font-weight: 600; margin-bottom: 6px; color: #94a3b8; }
+.legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: #6b7280; }
+.legend-line { width: 24px; height: 2px; flex-shrink: 0; }
+.prompt-area {
+  height: 150px; border-top: 1px solid #2a2a35; background: #16161e;
+  display: flex; flex-direction: column;
+}
+.prompt-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 16px 4px;
+}
+.prompt-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; }
+.copy-btn {
+  padding: 4px 12px; background: #6366f1; border: none; border-radius: 4px;
+  color: #fff; font-size: 11px; cursor: pointer; transition: background 0.15s;
+}
+.copy-btn:hover { background: #818cf8; }
+.prompt-text {
+  flex: 1; padding: 4px 16px 8px; overflow-y: auto;
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+  color: #c4c4cc; line-height: 1.5; white-space: pre-wrap;
+}
+.comment-item {
+  background: #1e1e28; border: 1px solid #2a2a35; border-radius: 6px;
+  padding: 8px 10px; margin-bottom: 6px; font-size: 11px;
+}
+.comment-item .target { font-weight: 600; color: #fbbf24; margin-bottom: 2px; }
+.comment-item .text { color: #94a3b8; margin-bottom: 4px; }
+.comment-item .del-btn {
+  background: none; border: none; color: #6b7280; font-size: 10px;
+  cursor: pointer; padding: 0;
+}
+.comment-item .del-btn:hover { color: #f87171; }
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: #000000aa;
+  z-index: 100; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #1e1e28; border: 1px solid #3a3a50; border-radius: 12px;
+  padding: 20px; width: 420px; max-width: 90vw;
+}
+.modal h3 { font-size: 14px; margin-bottom: 2px; }
+.modal .modal-sub { font-size: 11px; font-family: monospace; color: #6b7280; margin-bottom: 12px; }
+.modal textarea {
+  width: 100%; height: 80px; background: #0f0f14; border: 1px solid #2a2a35;
+  border-radius: 6px; color: #e2e2e8; padding: 8px; font-size: 12px;
+  font-family: inherit; resize: vertical;
+}
+.modal textarea:focus { outline: none; border-color: #6366f1; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.modal-actions button {
+  padding: 6px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none;
+}
+.btn-save { background: #6366f1; color: #fff; }
+.btn-save:hover { background: #818cf8; }
+.btn-cancel { background: #2a2a35; color: #c4c4cc; }
+.btn-cancel:hover { background: #3a3a50; }
+.no-comments { font-size: 11px; color: #4a4a5a; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <h1>CondoBot Architecture</h1>
+    <div class="subtitle">Click any component to add feedback</div>
+
+    <div class="section">
+      <div class="section-title">View Presets</div>
+      <div id="presets"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Layers</div>
+      <div id="layer-toggles"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Connection Types</div>
+      <div id="conn-toggles"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Comments (<span id="comment-count">0</span>)</div>
+      <div id="comments-list"><div class="no-comments">Click a component to add feedback</div></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="canvas-wrap">
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="setZoom(state.zoom - 0.15)" title="Zoom out">&minus;</button>
+        <button class="zoom-btn" onclick="setZoom(1)" title="Reset zoom" style="font-size:11px">1:1</button>
+        <button class="zoom-btn" onclick="setZoom(state.zoom + 0.15)" title="Zoom in">+</button>
+      </div>
+      <svg id="canvas" viewBox="0 0 1460 660" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend">
+        <div class="legend-title">Connections</div>
+        <div class="legend-row"><div class="legend-line" style="background:#60a5fa"></div> Data Flow</div>
+        <div class="legend-row"><div class="legend-line" style="background:#4ade80;background:repeating-linear-gradient(90deg,#4ade80 0 6px,transparent 6px 9px)"></div> Tool Call</div>
+        <div class="legend-row"><div class="legend-line" style="background:repeating-linear-gradient(90deg,#f87171 0 4px,transparent 4px 8px)"></div> Event</div>
+      </div>
+    </div>
+    <div class="prompt-area">
+      <div class="prompt-header">
+        <span class="prompt-label">Generated Prompt</span>
+        <button class="copy-btn" onclick="copyPrompt()">Copy</button>
+      </div>
+      <div class="prompt-text" id="prompt-output"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div class="modal-sub" id="modal-sub"></div>
+    <textarea id="modal-input" placeholder="Add your feedback or questions about this component..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveComment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Data =====
+const LAYER_META = {
+  external:  { label: 'External Services', color: '#a78bfa', bg: '#1e1b2e', border: '#a78bfa' },
+  server:    { label: 'Server & Routes',   color: '#fbbf24', bg: '#2a2517', border: '#fbbf24' },
+  logic:     { label: 'Core Logic',        color: '#4ade80', bg: '#162418', border: '#4ade80' },
+  knowledge: { label: 'Knowledge Base',    color: '#60a5fa', bg: '#151e2e', border: '#60a5fa' },
+  storage:   { label: 'Storage',           color: '#fb7185', bg: '#2a1721', border: '#fb7185' },
+};
+
+const CONN_META = {
+  'data-flow': { label: 'Data Flow', color: '#60a5fa', dash: '' },
+  'tool-call': { label: 'Tool Calls', color: '#4ade80', dash: '6,3' },
+  'event':     { label: 'Events',     color: '#f87171', dash: '4,4' },
+};
+
+const nodes = [
+  // External Services
+  { id:'guest',          label:'Guest',            subtitle:'Airbnb / VRBO',           x:20,   y:30,  w:175, h:52, layer:'external' },
+  { id:'hospitable-api', label:'Hospitable API',   subtitle:'hospitable.com/api/v2',   x:240,  y:30,  w:175, h:52, layer:'external' },
+  { id:'slack',          label:'Slack',            subtitle:'#condobot-approvals',      x:700,  y:30,  w:135, h:52, layer:'external' },
+  { id:'claude-api',     label:'Claude API',       subtitle:'Haiku 4.5',               x:1020, y:30,  w:175, h:52, layer:'external' },
+  { id:'tavily',         label:'Tavily Search',    subtitle:'Web search fallback',      x:1260, y:30,  w:160, h:52, layer:'external' },
+  // Server & Routes
+  { id:'hospitable-client', label:'Hospitable Client', subtitle:'src/hospitable.ts',    x:80,  y:160, w:230, h:52, layer:'server' },
+  { id:'http-server',       label:'HTTP Server',       subtitle:'src/index.ts',         x:390, y:160, w:220, h:52, layer:'server' },
+  { id:'webhook-handler',   label:'Webhook Handler',   subtitle:'src/webhook-handler.ts', x:160, y:290, w:260, h:52, layer:'server' },
+  { id:'slack-interactions', label:'Slack Interactions', subtitle:'src/slack-interactions.ts', x:520, y:290, w:270, h:52, layer:'server' },
+  { id:'slack-bot',          label:'Slack Bot',          subtitle:'src/slack.ts',        x:860, y:290, w:190, h:52, layer:'server' },
+  // Core Logic
+  { id:'property-resolver', label:'Property Resolver', subtitle:'src/properties.ts',    x:20,  y:420, w:225, h:52, layer:'logic' },
+  { id:'draft-generator',   label:'Draft Generator',   subtitle:'src/draft-generator.ts', x:290, y:420, w:265, h:52, layer:'logic' },
+  { id:'tool-executor',     label:'Tool Executor',     subtitle:'src/tools.ts',         x:680, y:420, w:205, h:52, layer:'logic' },
+  // Knowledge Base
+  { id:'voice-examples', label:'Voice Examples',  subtitle:'voice-examples.json', x:45,   y:565, w:160, h:48, layer:'knowledge' },
+  { id:'policies',       label:'Policies',        subtitle:'policies.md',         x:230,  y:565, w:125, h:48, layer:'knowledge' },
+  { id:'property-info',  label:'Property Info',   subtitle:'properties/*.md',     x:380,  y:565, w:150, h:48, layer:'knowledge' },
+  { id:'restaurants',    label:'Restaurants',     subtitle:'restaurants/*.md',    x:555,  y:565, w:140, h:48, layer:'knowledge' },
+  { id:'activities',     label:'Activities',      subtitle:'activities/*.md',     x:720,  y:565, w:130, h:48, layer:'knowledge' },
+  { id:'technology',     label:'Technology',      subtitle:'technology/*.md',     x:875,  y:565, w:140, h:48, layer:'knowledge' },
+  { id:'amenities',      label:'Amenities',       subtitle:'amenities/*.md',      x:1040, y:565, w:135, h:48, layer:'knowledge' },
+  // Storage
+  { id:'draft-store', label:'Draft Store', subtitle:'src/draft-store.ts', x:1010, y:420, w:215, h:52, layer:'storage' },
+];
+
+const nodeMap = {};
+nodes.forEach(n => nodeMap[n.id] = n);
+
+const connections = [
+  // Data Flow
+  { from:'guest',          to:'hospitable-api',    type:'data-flow', label:'Message',  offset:-18 },
+  { from:'hospitable-api', to:'guest',             type:'data-flow', label:'Reply',    offset:18 },
+  { from:'hospitable-api', to:'http-server',       type:'data-flow', label:'Webhook' },
+  { from:'http-server',    to:'webhook-handler',   type:'data-flow' },
+  { from:'webhook-handler',to:'draft-generator',   type:'data-flow' },
+  { from:'draft-generator',to:'slack-bot',         type:'data-flow', label:'Post draft' },
+  { from:'slack-bot',      to:'slack',             type:'data-flow' },
+  { from:'slack-interactions', to:'hospitable-client', type:'data-flow', label:'Approved reply' },
+  { from:'hospitable-client',  to:'hospitable-api',    type:'data-flow' },
+  { from:'webhook-handler',to:'hospitable-client',  type:'data-flow', label:'Fetch thread' },
+  { from:'webhook-handler',to:'slack-bot',          type:'data-flow', label:'Notify' },
+  // Tool Calls
+  { from:'draft-generator',to:'claude-api',      type:'tool-call', label:'Haiku 4.5' },
+  { from:'draft-generator',to:'tool-executor',   type:'tool-call' },
+  { from:'tool-executor',  to:'tavily',          type:'tool-call', label:'web_search()' },
+  { from:'tool-executor',  to:'voice-examples',  type:'tool-call' },
+  { from:'tool-executor',  to:'policies',        type:'tool-call' },
+  { from:'tool-executor',  to:'property-info',   type:'tool-call' },
+  { from:'tool-executor',  to:'restaurants',     type:'tool-call' },
+  { from:'tool-executor',  to:'activities',      type:'tool-call' },
+  { from:'tool-executor',  to:'technology',      type:'tool-call' },
+  { from:'tool-executor',  to:'amenities',       type:'tool-call' },
+  { from:'webhook-handler',to:'property-resolver', type:'tool-call' },
+  // Events
+  { from:'slack',           to:'http-server',        type:'event', label:'Button click' },
+  { from:'http-server',     to:'slack-interactions',  type:'event' },
+  { from:'webhook-handler', to:'draft-store',         type:'event', label:'Store' },
+  { from:'slack-interactions', to:'draft-store',      type:'event', label:'Retrieve' },
+];
+
+const PRESETS = {
+  'full':       { label: 'Full System',     layers: { external:true, server:true, logic:true, knowledge:true, storage:true }, conns: { 'data-flow':true, 'tool-call':true, event:true } },
+  'message':    { label: 'Message Pipeline', layers: { external:true, server:true, logic:true, knowledge:false, storage:false }, conns: { 'data-flow':true, 'tool-call':false, event:false } },
+  'ai':         { label: 'AI Draft Engine',  layers: { external:true, server:false, logic:true, knowledge:true, storage:false }, conns: { 'data-flow':true, 'tool-call':true, event:false } },
+  'approval':   { label: 'Approval Loop',    layers: { external:true, server:true, logic:true, knowledge:false, storage:true }, conns: { 'data-flow':true, 'tool-call':false, event:true } },
+};
+
+// ===== State =====
+const state = {
+  layers: { external:true, server:true, logic:true, knowledge:true, storage:true },
+  conns: { 'data-flow':true, 'tool-call':true, event:true },
+  zoom: 1,
+  activePreset: 'full',
+  comments: [],
+  modalTarget: null,
+};
+const BASE_VB = { x:0, y:0, w:1460, h:660 };
+
+// ===== Path Computation =====
+function computePath(fromId, toId, offset) {
+  const f = nodeMap[fromId], t = nodeMap[toId];
+  if (!f || !t) return null;
+  const fc = { x: f.x + f.w/2, y: f.y + f.h/2 };
+  const tc = { x: t.x + t.w/2, y: t.y + t.h/2 };
+  const dy = tc.y - fc.y, dx = tc.x - fc.x;
+  let sx, sy, ex, ey, cp1x, cp1y, cp2x, cp2y;
+  const off = offset || 0;
+
+  if (Math.abs(dy) > 60) {
+    // Vertical connection
+    if (dy > 0) {
+      sx = fc.x; sy = f.y + f.h; ex = tc.x; ey = t.y;
+    } else {
+      sx = fc.x; sy = f.y; ex = tc.x; ey = t.y + t.h;
+    }
+    const vd = Math.abs(ey - sy) * 0.4;
+    cp1x = sx; cp1y = dy > 0 ? sy + vd : sy - vd;
+    cp2x = ex; cp2y = dy > 0 ? ey - vd : ey + vd;
+    cp1y += off; cp2y += off;
+  } else {
+    // Horizontal connection
+    if (dx > 0) {
+      sx = f.x + f.w; sy = fc.y; ex = t.x; ey = tc.y;
+    } else {
+      sx = f.x; sy = fc.y; ex = t.x + t.w; ey = tc.y;
+    }
+    const hd = Math.abs(ex - sx) * 0.4;
+    cp1x = dx > 0 ? sx + hd : sx - hd; cp1y = sy + off;
+    cp2x = dx > 0 ? ex - hd : ex + hd; cp2y = ey + off;
+  }
+
+  const midX = 0.125*sx + 0.375*cp1x + 0.375*cp2x + 0.125*ex;
+  const midY = 0.125*sy + 0.375*cp1y + 0.375*cp2y + 0.125*ey;
+  return {
+    d: `M${sx},${sy} C${cp1x},${cp1y} ${cp2x},${cp2y} ${ex},${ey}`,
+    mid: { x: midX, y: midY }
+  };
+}
+
+// ===== Rendering =====
+function render() {
+  const svg = document.getElementById('canvas');
+  let html = `<defs>`;
+  for (const [type, meta] of Object.entries(CONN_META)) {
+    html += `<marker id="arrow-${type}" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="${meta.color}"/></marker>`;
+  }
+  html += `<filter id="glow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#fbbf24" flood-opacity="0.6"/></filter>`;
+  html += `</defs>`;
+
+  // Layer band labels
+  const bands = [
+    { y:12, label:'External Services', show:'external' },
+    { y:145, label:'Server & Routes', show:'server' },
+    { y:405, label:'Core Logic', show:'logic' },
+    { y:550, label:'Knowledge Base', show:'knowledge' },
+  ];
+  bands.forEach(b => {
+    if (state.layers[b.show]) {
+      html += `<text x="1445" y="${b.y}" text-anchor="end" font-size="9" fill="#3a3a50" font-weight="600">${b.label}</text>`;
+    }
+  });
+
+  // Connections
+  connections.forEach(c => {
+    const fNode = nodeMap[c.from], tNode = nodeMap[c.to];
+    if (!state.conns[c.type]) return;
+    if (!state.layers[fNode.layer] || !state.layers[tNode.layer]) return;
+    const p = computePath(c.from, c.to, c.offset);
+    if (!p) return;
+    const meta = CONN_META[c.type];
+    html += `<path d="${p.d}" fill="none" stroke="${meta.color}" stroke-width="1.5" stroke-opacity="0.5" stroke-dasharray="${meta.dash}" marker-end="url(#arrow-${c.type})"/>`;
+    if (c.label) {
+      html += `<text x="${p.mid.x}" y="${p.mid.y - 4}" text-anchor="middle" font-size="8.5" fill="${meta.color}" paint-order="stroke" stroke="#0f0f14" stroke-width="3" stroke-opacity="0.9">${c.label}</text>`;
+    }
+  });
+
+  // Nodes
+  const commentedIds = new Set(state.comments.map(c => c.target));
+  nodes.forEach(n => {
+    if (!state.layers[n.layer]) return;
+    const lm = LAYER_META[n.layer];
+    const commented = commentedIds.has(n.id);
+    const strokeW = commented ? 2.5 : 1.5;
+    const strokeColor = commented ? '#fbbf24' : lm.border;
+    const filter = commented ? ' filter="url(#glow)"' : '';
+    html += `<g class="node" data-id="${n.id}" cursor="pointer"${filter}>`;
+    html += `<rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="8" fill="${lm.bg}" stroke="${strokeColor}" stroke-width="${strokeW}" opacity="0.95"/>`;
+    html += `<text x="${n.x + n.w/2}" y="${n.y + 21}" text-anchor="middle" font-size="12" font-weight="600" fill="#e2e2e8" pointer-events="none">${n.label}</text>`;
+    html += `<text x="${n.x + n.w/2}" y="${n.y + 36}" text-anchor="middle" font-size="9" font-family="'SF Mono','Fira Code',monospace" fill="#6b7280" pointer-events="none">${n.subtitle}</text>`;
+    html += `</g>`;
+  });
+
+  svg.innerHTML = html;
+
+  // Attach click handlers
+  svg.querySelectorAll('.node').forEach(g => {
+    g.addEventListener('click', () => openModal(g.dataset.id));
+    g.addEventListener('mouseenter', () => {
+      const rect = g.querySelector('rect');
+      rect.setAttribute('stroke-opacity', '1');
+      rect.setAttribute('stroke-width', '2.5');
+    });
+    g.addEventListener('mouseleave', () => {
+      const rect = g.querySelector('rect');
+      const n = nodeMap[g.dataset.id];
+      const commented = commentedIds.has(n.id);
+      rect.setAttribute('stroke-opacity', '0.95');
+      rect.setAttribute('stroke-width', commented ? '2.5' : '1.5');
+    });
+  });
+
+  updatePrompt();
+}
+
+// ===== Zoom =====
+function setZoom(level) {
+  state.zoom = Math.max(0.5, Math.min(2.5, level));
+  const svg = document.getElementById('canvas');
+  const w = BASE_VB.w / state.zoom;
+  const h = BASE_VB.h / state.zoom;
+  const x = (BASE_VB.w - w) / 2;
+  const y = (BASE_VB.h - h) / 2;
+  svg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+}
+
+// ===== Comments =====
+function openModal(nodeId) {
+  const n = nodeMap[nodeId];
+  if (!n) return;
+  state.modalTarget = nodeId;
+  document.getElementById('modal-title').textContent = n.label;
+  document.getElementById('modal-sub').textContent = n.subtitle;
+  document.getElementById('modal-input').value = '';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('modal-input').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  state.modalTarget = null;
+}
+
+function saveComment() {
+  const text = document.getElementById('modal-input').value.trim();
+  if (!text || !state.modalTarget) return;
+  const n = nodeMap[state.modalTarget];
+  state.comments.push({
+    id: Date.now(),
+    target: state.modalTarget,
+    targetLabel: n.label,
+    targetFile: n.subtitle,
+    text: text
+  });
+  closeModal();
+  renderComments();
+  render();
+}
+
+function deleteComment(id) {
+  state.comments = state.comments.filter(c => c.id !== id);
+  renderComments();
+  render();
+}
+
+function renderComments() {
+  const el = document.getElementById('comments-list');
+  const countEl = document.getElementById('comment-count');
+  countEl.textContent = state.comments.length;
+  if (state.comments.length === 0) {
+    el.innerHTML = '<div class="no-comments">Click a component to add feedback</div>';
+    return;
+  }
+  el.innerHTML = state.comments.map(c => `
+    <div class="comment-item">
+      <div class="target">${c.targetLabel}</div>
+      <div class="text">${c.text}</div>
+      <button class="del-btn" onclick="deleteComment(${c.id})">Remove</button>
+    </div>
+  `).join('');
+}
+
+// ===== Prompt =====
+function updatePrompt() {
+  const el = document.getElementById('prompt-output');
+  const visibleLayers = Object.entries(state.layers).filter(([,v]) => v).map(([k]) => LAYER_META[k].label);
+  const allVisible = visibleLayers.length === Object.keys(LAYER_META).length;
+
+  let parts = [];
+  if (allVisible) {
+    parts.push('This is the full CondoBot architecture showing all system layers and connections.');
+  } else {
+    parts.push(`This is the CondoBot architecture, focusing on: ${visibleLayers.join(', ')}.`);
+  }
+
+  parts.push('');
+  parts.push('CondoBot is an AI guest-messaging system for vacation rentals. It monitors Hospitable for guest messages, generates draft replies using Claude (Haiku 4.5) with a knowledge base of property info, and posts drafts to Slack for human approval before sending.');
+
+  if (state.comments.length > 0) {
+    parts.push('');
+    parts.push('Feedback on specific components:');
+    state.comments.forEach(c => {
+      parts.push('');
+      parts.push(`**${c.targetLabel}** (${c.targetFile}):`);
+      parts.push(c.text);
+    });
+  } else {
+    parts.push('');
+    parts.push('No component feedback yet \u2014 click any node to add comments.');
+  }
+
+  el.textContent = parts.join('\n');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// ===== Presets =====
+function applyPreset(name) {
+  const p = PRESETS[name];
+  if (!p) return;
+  state.activePreset = name;
+  Object.assign(state.layers, p.layers);
+  Object.assign(state.conns, p.conns);
+  buildSidebar();
+  render();
+}
+
+// ===== Sidebar =====
+function buildSidebar() {
+  // Presets
+  const presetsEl = document.getElementById('presets');
+  presetsEl.innerHTML = Object.entries(PRESETS).map(([k, v]) =>
+    `<button class="preset-btn${state.activePreset === k ? ' active' : ''}" onclick="applyPreset('${k}')">${v.label}</button>`
+  ).join('');
+
+  // Layer toggles
+  const layersEl = document.getElementById('layer-toggles');
+  layersEl.innerHTML = Object.entries(LAYER_META).map(([k, v]) =>
+    `<label class="check-row">
+      <input type="checkbox" ${state.layers[k] ? 'checked' : ''} onchange="state.layers['${k}']=this.checked; state.activePreset=''; buildSidebar(); render();">
+      <span class="color-dot" style="background:${v.color}"></span>
+      ${v.label}
+    </label>`
+  ).join('');
+
+  // Connection toggles
+  const connsEl = document.getElementById('conn-toggles');
+  connsEl.innerHTML = Object.entries(CONN_META).map(([k, v]) =>
+    `<label class="check-row">
+      <input type="checkbox" ${state.conns[k] ? 'checked' : ''} onchange="state.conns['${k}']=this.checked; state.activePreset=''; buildSidebar(); render();">
+      <span class="color-dot" style="background:${v.color}"></span>
+      ${v.label}
+    </label>`
+  ).join('');
+}
+
+// ===== Keyboard =====
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.getElementById('modal').classList.contains('open')) {
+    e.preventDefault();
+    saveComment();
+  }
+});
+
+// ===== Init =====
+buildSidebar();
+render();
+</script>
+</body>
+</html>
