@@ -147,3 +147,8 @@ This website is run by the Kanaloa at Kona HOA and has information about the com
 - [ ] Export historical Hospitable conversations for voice-examples.json
 - [ ] Remember guests and tell us in Slack when they return so they can get special greetings
 - [ ] Guests sometimes want to be told if space opens up on either side of their reservations. Add a way to record this wish and then notify guests when space opens up. 
+
+## On the Moral Underpinnings of Anthropic Models
+- Constitution co-authored by Amanda Askell and Joe Carlsmith
+- Contributors included Father Brendan McGuire (CS/Math, Los Altos) and Bishop Paul Tighe (Roman curia, moral theology)
+- Virtue ethics was chosen deliberately over deontological rules
